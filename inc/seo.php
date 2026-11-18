@@ -29,7 +29,9 @@ function kh_meta_description() {
 	if ( is_singular() ) {
 		$post = get_queried_object();
 		$text = has_excerpt( $post ) ? get_the_excerpt( $post ) : wp_strip_all_tags( strip_shortcodes( $post->post_content ) );
-		return wp_trim_words( $text, 30, '…' );
+		$text = wp_trim_words( $text, 30, '…' );
+		// Pages built only from theme blocks have no plain text: use the site description.
+		return '' !== trim( $text ) ? $text : kh_opt( 'seo_description' );
 	}
 	if ( is_post_type_archive( 'khoa_hoc' ) ) {
 		return sprintf( 'Danh sách khóa học tại %s. %s', kh_opt( 'brand_name' ), kh_opt( 'seo_description' ) );

@@ -8,6 +8,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// Public YouTube video used for the demo "Học thử" lessons. Replace with your own.
+const KH_DEMO_TRIAL_VIDEO = 'https://www.youtube.com/watch?v=k1VUZEVuDJ8';
+
 /**
  * Serialize one block.
  *
@@ -414,12 +417,27 @@ function kh_demo_course_body( $c ) {
 	foreach ( $chapters as $title => $lessons ) {
 		$inner = '';
 		foreach ( $lessons as $l ) {
-			$inner .= kh_b( 'kh/lesson', array_filter( array( 'title' => $l[0], 'duration' => $l[1], 'url' => $l[2] ? '#hoc-thu' : '' ) ) );
+			$inner .= kh_b( 'kh/lesson', array_filter( array( 'title' => $l[0], 'duration' => $l[1], 'url' => $l[2] ? KH_DEMO_TRIAL_VIDEO : '' ) ) );
 		}
 		$o    .= kh_b( 'kh/chapter', $first ? array( 'title' => $title, 'open' => true ) : array( 'title' => $title ), $inner );
 		$first = false;
 	}
 	return $o;
+}
+
+/**
+ * "Tài khoản" page (target of the header "Vào học" button).
+ * With WooCommerce: its My Account screen. Without: a WordPress login form.
+ *
+ * @return string
+ */
+function kh_demo_account() {
+	if ( class_exists( 'WooCommerce' ) ) {
+		return kh_b( 'core/shortcode', array(), '[woocommerce_my_account]' );
+	}
+	return kh_p( 'Đăng nhập để vào học các khóa bạn đã đăng ký.' )
+		. kh_b( 'core/loginout', array( 'displayLoginAsForm' => true, 'className' => 'kh-login' ) )
+		. kh_p( 'Chưa có tài khoản? <a href="' . esc_url( home_url( '/lien-he/' ) ) . '">Liên hệ</a> để được cấp tài khoản sau khi đăng ký khóa học.' );
 }
 
 /**
@@ -505,6 +523,7 @@ function kh_import_demo() {
 				) . kh_b( 'kh/contact-form', array( 'topics' => 'Excel, Word, AI cho công việc, Mua cho công ty' ) )
 			),
 		),
+		'tai-khoan'  => array( 'Tài khoản', kh_demo_account() ),
 	);
 	$page_ids = array();
 	foreach ( $pages as $slug => $p ) {

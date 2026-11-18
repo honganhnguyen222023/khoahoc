@@ -84,6 +84,49 @@
 		btn.replaceWith(f);
 	});
 
+	/* Course list: filters apply on change; sidebar always open on desktop */
+	d.querySelectorAll('form[data-autosubmit]').forEach(function (form) {
+		form.addEventListener('change', function () {
+			// Drop empty fields so URLs stay short (e.g. no "?sap_xep=").
+			form.querySelectorAll('select').forEach(function (s) { s.disabled = !s.value; });
+			form.submit();
+		});
+	});
+	var box = d.querySelector('[data-filterbox]');
+	if (box && window.matchMedia) {
+		var desk = window.matchMedia('(min-width: 1024px)');
+		var syncBox = function () { if (desk.matches) box.open = true; };
+		syncBox();
+		desk.addEventListener ? desk.addEventListener('change', syncBox) : desk.addListener(syncBox);
+		box.querySelector('summary').addEventListener('click', function (e) { if (desk.matches) e.preventDefault(); });
+	}
+
+	/* Trial lessons: YouTube in a popup player */
+	var modal;
+	d.addEventListener('click', function (e) {
+		var link = e.target.closest('[data-yt-modal]');
+		if (!link || !window.HTMLDialogElement) return;
+		e.preventDefault();
+		if (!modal) {
+			modal = d.createElement('dialog');
+			modal.className = 'kh-vmodal';
+			modal.innerHTML = '<div class="kh-vmodal-box"><div class="kh-vmodal-head"><p class="kh-vmodal-title"></p>' +
+				'<button type="button" class="kh-vmodal-close" aria-label="Đóng video">&times;</button></div><div class="kh-vmodal-frame"></div></div>';
+			d.body.appendChild(modal);
+			modal.querySelector('.kh-vmodal-close').addEventListener('click', function () { modal.close(); });
+			modal.addEventListener('click', function (ev) { if (ev.target === modal) modal.close(); });
+			modal.addEventListener('close', function () { modal.querySelector('.kh-vmodal-frame').innerHTML = ''; });
+		}
+		var f = d.createElement('iframe');
+		f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(link.getAttribute('data-yt-modal')) + '?autoplay=1&rel=0';
+		f.title = link.textContent;
+		f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+		f.allowFullscreen = true;
+		modal.querySelector('.kh-vmodal-title').textContent = 'Học thử: ' + link.textContent;
+		modal.querySelector('.kh-vmodal-frame').appendChild(f);
+		modal.showModal();
+	});
+
 	/* FAQ: keep one answer open at a time */
 	d.querySelectorAll('.kh-faq').forEach(function (faq) {
 		faq.addEventListener('toggle', function (e) {

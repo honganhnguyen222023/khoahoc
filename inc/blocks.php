@@ -530,7 +530,24 @@ function kh_render_lesson( $a ) {
 	$type  = kh_a( $a, 'type', 'video' );
 	$title = kh_rich( kh_a( $a, 'title' ) );
 	$url   = kh_a( $a, 'url' );
-	$label = $url ? '<a ' . kh_link_attrs( $url ) . '>' . $title . '</a><span class="kh-preview">Học thử</span>' : '<span>' . $title . '</span>';
+	$yt    = kh_youtube_id( $url );
+	// "#..." placeholder (older demo content): play the course intro video instead.
+	if ( ! $yt && 0 === strpos( (string) $url, '#' ) && 'khoa_hoc' === get_post_type() ) {
+		$yt = kh_youtube_id( get_post_meta( get_the_ID(), '_kh_video', true ) );
+	}
+	if ( $yt ) {
+		// Opens in a popup player (assets/js/app.js); plain YouTube link without JS.
+		$label = sprintf(
+			'<a href="%1$s" data-yt-modal="%2$s" target="_blank" rel="noopener">%3$s</a><span class="kh-preview">Học thử</span>',
+			esc_url( 'https://www.youtube.com/watch?v=' . $yt ),
+			esc_attr( $yt ),
+			$title
+		);
+	} elseif ( $url ) {
+		$label = '<a ' . kh_link_attrs( $url ) . '>' . $title . '</a><span class="kh-preview">Học thử</span>';
+	} else {
+		$label = '<span>' . $title . '</span>';
+	}
 	return sprintf(
 		'<li class="kh-lesson">%1$s<span class="kh-lesson-title">%2$s</span><span class="kh-lesson-time">%3$s</span></li>',
 		kh_icon( 'doc' === $type ? 'file-text' : ( $url ? 'play' : 'lock' ), 'kh-lesson-icon', 16 ),

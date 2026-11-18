@@ -805,7 +805,7 @@
 				null,
 				inspector(panel('Bài học', [
 					select(props, 'type', 'Loại', [{ label: 'Video', value: 'video' }, { label: 'Tài liệu', value: 'doc' }]),
-					text(props, 'url', 'Link học thử (không bắt buộc)', 'Có link: hiện nhãn "Học thử" và cho bấm xem.')
+					text(props, 'url', 'Link học thử (không bắt buộc)', 'Có link: hiện nhãn "Học thử" và cho bấm xem. Link YouTube sẽ phát trong khung video nổi ngay trên trang.')
 				])),
 				el(
 					'div',

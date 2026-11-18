@@ -181,13 +181,88 @@ add_action(
 	}
 );
 
-// Course lists: manual order first (Thuộc tính trang → Thứ tự), 12 per page.
+/**
+ * Slug of the course category that marks a course as a combo/bundle.
+ *
+ * @return string
+ */
+function kh_combo_slug() {
+	return apply_filters( 'kh_combo_slug', 'combo' );
+}
+
+/**
+ * Sort options for the course list (key => label).
+ *
+ * @return array
+ */
+function kh_course_sorts() {
+	return array(
+		''    => 'Nổi bật',
+		'moi' => 'Mới nhất',
+		'cu'  => 'Cũ nhất',
+		'az'  => 'Tên A – Z',
+		'za'  => 'Tên Z – A',
+	);
+}
+
+/**
+ * Filters chosen in the course sidebar, read from the URL.
+ * ?loai[]=le|combo  ?chu_de[]=<category slug>  ?sap_xep=<sort key>
+ *
+ * @return array{loai:string[],chu_de:string[],sap_xep:string}
+ */
+function kh_course_filters() {
+	// phpcs:disable WordPress.Security.NonceVerification -- read-only list filters.
+	$list = function ( $key ) {
+		$v = isset( $_GET[ $key ] ) ? wp_unslash( $_GET[ $key ] ) : array();
+		return array_values( array_filter( array_map( 'sanitize_title', (array) $v ) ) );
+	};
+	$sort = isset( $_GET['sap_xep'] ) ? sanitize_key( wp_unslash( $_GET['sap_xep'] ) ) : '';
+	// phpcs:enable
+	return array(
+		'loai'    => array_values( array_intersect( $list( 'loai' ), array( 'le', 'combo' ) ) ),
+		'chu_de'  => $list( 'chu_de' ),
+		'sap_xep' => array_key_exists( $sort, kh_course_sorts() ) ? $sort : '',
+	);
+}
+
+// Course lists: sidebar filters + sort; default = manual order (Thuộc tính trang → Thứ tự). 12 per page.
 add_action(
 	'pre_get_posts',
 	function ( $q ) {
-		if ( ! is_admin() && $q->is_main_query() && ( $q->is_post_type_archive( 'khoa_hoc' ) || $q->is_tax( 'danh_muc_khoa_hoc' ) ) ) {
-			$q->set( 'orderby', array( 'menu_order' => 'ASC', 'date' => 'DESC' ) );
-			$q->set( 'posts_per_page', 12 );
+		if ( is_admin() || ! $q->is_main_query() || ! ( $q->is_post_type_archive( 'khoa_hoc' ) || $q->is_tax( 'danh_muc_khoa_hoc' ) ) ) {
+			return;
+		}
+		$f = kh_course_filters();
+		$q->set( 'posts_per_page', 12 );
+
+		$orders = array(
+			''    => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+			'moi' => array( 'date' => 'DESC' ),
+			'cu'  => array( 'date' => 'ASC' ),
+			'az'  => array( 'title' => 'ASC' ),
+			'za'  => array( 'title' => 'DESC' ),
+		);
+		$q->set( 'orderby', $orders[ $f['sap_xep'] ] );
+
+		$tax = array();
+		if ( 1 === count( $f['loai'] ) ) {
+			$tax[] = array(
+				'taxonomy' => 'danh_muc_khoa_hoc',
+				'field'    => 'slug',
+				'terms'    => array( kh_combo_slug() ),
+				'operator' => 'combo' === $f['loai'][0] ? 'IN' : 'NOT IN',
+			);
+		}
+		if ( $f['chu_de'] ) {
+			$tax[] = array(
+				'taxonomy' => 'danh_muc_khoa_hoc',
+				'field'    => 'slug',
+				'terms'    => $f['chu_de'],
+			);
+		}
+		if ( $tax ) {
+			$q->set( 'tax_query', array_merge( array( 'relation' => 'AND' ), $tax ) );
 		}
 	}
 );

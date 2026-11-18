@@ -88,3 +88,41 @@ function kh_pagination() {
 		echo '<nav class="kh-pagination" aria-label="Phân trang">' . wp_kses_post( $links ) . '</nav>';
 	}
 }
+
+/**
+ * Login block on the "Tài khoản" page: Vietnamese labels, a "forgot password"
+ * link, and a short welcome with useful links once the student is logged in.
+ */
+add_filter(
+	'login_form_defaults',
+	function ( $args ) {
+		$args['label_username'] = 'Email hoặc tên đăng nhập';
+		$args['label_password'] = 'Mật khẩu';
+		$args['label_remember'] = 'Ghi nhớ đăng nhập';
+		$args['label_log_in']   = 'Đăng nhập';
+		return $args;
+	}
+);
+
+add_filter(
+	'render_block_core/loginout',
+	function ( $html, $block ) {
+		if ( empty( $block['attrs']['className'] ) || false === strpos( $block['attrs']['className'], 'kh-login' ) ) {
+			return $html;
+		}
+		if ( ! is_user_logged_in() ) {
+			$lost = '<p class="kh-login-lost"><a href="' . esc_url( wp_lostpassword_url( get_permalink() ) ) . '">Quên mật khẩu?</a></p>';
+			return preg_replace( '#</form>#', $lost . '</form>', $html, 1 );
+		}
+		$user = wp_get_current_user();
+		$out  = '<div class="wp-block-loginout kh-login kh-login-in">';
+		$out .= '<p class="kh-login-hello">Xin chào <strong>' . esc_html( $user->display_name ) . '</strong>, bạn đã đăng nhập.</p>';
+		$out .= '<div class="kh-login-actions">';
+		$out .= '<a class="kh-btn kh-btn-primary" href="' . esc_url( home_url( '/khoa-hoc/' ) ) . '">Vào khóa học</a>';
+		$out .= '<a class="kh-btn kh-btn-outline" href="' . esc_url( wp_logout_url( home_url( '/' ) ) ) . '">Đăng xuất</a>';
+		$out .= '</div></div>';
+		return $out;
+	},
+	10,
+	2
+);
