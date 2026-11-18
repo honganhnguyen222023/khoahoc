@@ -1,0 +1,27 @@
+{
+  "name": "khoahoc-theme",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --minify",
+    "dev": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/honganhnguyen222023/khoahoc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/honganhnguyen222023/khoahoc/issues"
+  },
+  "homepage": "https://github.com/honganhnguyen222023/khoahoc#readme",
+  "devDependencies": {
+    "@fontsource/be-vietnam-pro": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "lucide-static": "^1.75.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "private": true
+}
