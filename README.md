@@ -146,6 +146,13 @@ npm run build
 ```
 Hoặc dùng `npm run dev` để tự build mỗi khi lưu file.
 
+**Đóng gói** (macOS/Linux, file nằm trong `dist/`):
+```bash
+npm run zip:theme    # dist/khoahoc.zip: tải lên WordPress (Giao diện → Tải giao diện lên)
+npm run zip:source   # dist/khoahoc-source.zip: chép sang máy khác (có .git, không có node_modules)
+```
+Hướng dẫn đầy đủ đưa website lên hosting và chép sang máy khác: `docs/Huong-dan-KhoaHoc-Academy.docx` (Phần 3 và 4).
+
 **Vì sao các khối render bằng PHP:** khối chỉ lưu dữ liệu (thuộc tính), HTML do PHP tạo khi hiển thị. Khi nâng cấp thiết kế, nội dung cũ không bị lỗi "khối không hợp lệ".
 
 **Bảo mật form:** có nonce, ô bẫy bot (honeypot), chặn gửi nhanh dưới 3 giây, giới hạn 1 lần/30 giây mỗi IP. Mọi dữ liệu đều được làm sạch trước khi lưu.

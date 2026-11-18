@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "build": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --minify",
-    "dev": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --watch"
+    "dev": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --watch",
+    "zip:theme": "sh scripts/package.sh theme",
+    "zip:source": "sh scripts/package.sh source"
   },
   "repository": {
     "type": "git",
