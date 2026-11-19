@@ -545,6 +545,28 @@
 	.kh-thanks h2 { @apply mt-0 text-xl; }
 	.kh-thanks .kh-btn { @apply no-underline; }
 
+	/* Progress, expiry, trial limits */
+	.kh-lesson.is-done .kh-lesson-icon { @apply text-brand; }
+	.kh-lesson.is-done .kh-lesson-title a { @apply text-body; }
+	.kh-preview.is-muted { @apply bg-surface text-muted; }
+	.kh-learn-flag { @apply m-0 mb-3 flex items-center gap-2 rounded-xl bg-brand-soft px-4 py-2.5 text-sm font-medium text-brand-dark; }
+	.kh-learn-flag.is-soft { @apply bg-white text-body; }
+	.kh-learn-status { @apply mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-white px-4 py-3 text-sm text-body; }
+	.kh-learn-status .kh-learn-bar { @apply w-full; }
+	.kh-learn-status.is-done { @apply border-transparent bg-brand-soft font-semibold text-brand-dark; }
+	.kh-learn-status .kh-btn { @apply ml-auto; }
+	.kh-learn-status .kh-btn:disabled { @apply cursor-not-allowed opacity-60; }
+	.kh-btn.is-disabled { @apply cursor-not-allowed opacity-50; box-shadow: none; }
+	.kh-shake { animation: kh-shake .4s; }
+	@keyframes kh-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+	.kh-buybox-term { @apply mb-1 mt-0 flex items-center gap-2 text-sm text-body; }
+	.kh-buybox-term .kh-svg { @apply text-brand; }
+	.kh-owned.is-expired { @apply bg-amber-50 text-amber-800; }
+	.kh-trial-link.is-used { @apply mb-0 cursor-default text-muted; }
+	.kh-mycourse-exp { @apply text-[13px]; }
+	.kh-mycourse-exp.is-expired { @apply font-semibold text-amber-700; }
+	.kh-mycourse.is-expired .kh-mycourse-media { filter: grayscale(1); opacity: .7; }
+
 	.kh-mobile-buy { @apply fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between gap-3 border-t border-line bg-white/95 px-4 py-3 lg:hidden; backdrop-filter: blur(8px); padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
 	.kh-mobile-buy strong { @apply block font-head text-lg font-extrabold text-ink; line-height: 1.1; }
 	.kh-mobile-buy s { @apply text-xs text-muted; }

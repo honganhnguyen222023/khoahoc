@@ -51,7 +51,22 @@ function kh_option_fields() {
 				'header_cta_url'  => array( 'label' => 'Link nút trên đầu trang', 'default' => '/tai-khoan/', 'type' => 'url' ),
 				'footer_about'    => array( 'label' => 'Giới thiệu ngắn ở chân trang', 'default' => 'Học tin học văn phòng và AI trên bài tập sát công việc thật. Học xong làm được ngay.', 'type' => 'textarea' ),
 				'copyright'       => array( 'label' => 'Dòng bản quyền', 'default' => '© {year} KhoaHoc Academy. Mọi quyền được bảo lưu.', 'help' => '{year} tự đổi thành năm hiện tại.' ),
-				'footer_note'     => array( 'label' => 'Dòng nhỏ cuối trang (bên phải)', 'default' => 'Học online · Học trọn đời · Hỗ trợ qua nhóm Zalo' ),
+				'footer_note'     => array( 'label' => 'Dòng nhỏ cuối trang (bên phải)', 'default' => 'Học online · Học theo lộ trình · Hỗ trợ qua nhóm Zalo' ),
+			),
+		),
+		'learning' => array(
+			'label'  => __( 'Học viên & bài học', 'khoahoc' ),
+			'fields' => array(
+				'course_duration' => array(
+					'label'   => 'Thời hạn học mặc định',
+					'default' => '12',
+					'type'    => 'select',
+					'options' => array( 'life' => 'Trọn đời', '3' => '3 tháng', '6' => '6 tháng', '12' => '12 tháng (1 năm)', '24' => '24 tháng (2 năm)' ),
+					'help'    => 'Tính từ ngày mở khóa. Hết hạn thì khóa học bị khóa lại; mua lại sẽ học từ đầu. Từng khóa có thể đặt riêng ở ô "Thời hạn học" khi sửa khóa học.',
+				),
+				'sequential'      => array( 'label' => 'Học xong bài trước mới mở bài sau', 'default' => '1', 'type' => 'checkbox', 'help' => 'Học viên phải xem xong bài 1 mới vào được bài 2, cứ thế đến hết khóa. Quản trị viên luôn xem được mọi bài.' ),
+				'watch_percent'   => array( 'label' => 'Xem bao nhiêu % thì tính là học xong (%)', 'default' => '90', 'type' => 'number', 'min' => 10, 'max' => 100, 'help' => 'Theme đếm số giây thật sự đã xem (tua qua không tính). Video Google Drive/Bunny và bài tài liệu dùng nút "Đã học xong".' ),
+				'trial_views'     => array( 'label' => 'Số lượt xem thử mỗi bài (tài khoản chưa mua)', 'default' => '2', 'type' => 'number', 'min' => 0, 'max' => 50, 'help' => 'Hết lượt thì bài học thử bị khóa. Tải lại trang trong 30 phút vẫn tính là 1 lượt. Nhập 0 = không giới hạn.' ),
 			),
 		),
 		'colors'  => array(
@@ -65,7 +80,7 @@ function kh_option_fields() {
 		'seo'     => array(
 			'label'  => __( 'SEO & đo lường', 'khoahoc' ),
 			'fields' => array(
-				'seo_description' => array( 'label' => 'Mô tả trang chủ (meta description)', 'default' => 'Khóa học Excel, Word và AI thực chiến cho người đi làm. Học trọn đời, có nhóm hỗ trợ.', 'type' => 'textarea', 'help' => 'Khoảng 140–160 ký tự. Nếu bạn dùng Yoast/Rank Math, theme tự nhường cho plugin.' ),
+				'seo_description' => array( 'label' => 'Mô tả trang chủ (meta description)', 'default' => 'Khóa học Excel, Word và AI thực chiến cho người đi làm. Học theo lộ trình, có nhóm hỗ trợ.', 'type' => 'textarea', 'help' => 'Khoảng 140–160 ký tự. Nếu bạn dùng Yoast/Rank Math, theme tự nhường cho plugin.' ),
 				'og_image'        => array( 'label' => 'Ảnh chia sẻ mặc định (Facebook, Zalo)', 'default' => '', 'type' => 'image', 'help' => 'Kích thước đẹp nhất 1200×630.' ),
 				'ga4_id'          => array( 'label' => 'Google Analytics 4 (G-XXXX)', 'default' => '' ),
 				'head_code'       => array( 'label' => 'Mã chèn vào <head> (Pixel, xác minh…)', 'default' => '', 'type' => 'code', 'help' => 'Chỉ dán mã từ nguồn tin cậy.' ),
@@ -171,6 +186,13 @@ function kh_sanitize_settings( $input ) {
 				case 'textarea':
 					$out[ $key ] = sanitize_textarea_field( $val );
 					break;
+				case 'select':
+					$out[ $key ] = array_key_exists( (string) $val, $field['options'] ) ? (string) $val : $field['default'];
+					break;
+				case 'number':
+					$num         = (int) $val;
+					$out[ $key ] = (string) max( isset( $field['min'] ) ? $field['min'] : 0, min( isset( $field['max'] ) ? $field['max'] : PHP_INT_MAX, $num ) );
+					break;
 				case 'code':
 					$out[ $key ] = current_user_can( 'unfiltered_html' ) ? trim( $val ) : wp_kses_post( $val );
 					break;
@@ -238,6 +260,14 @@ function kh_render_settings_page() {
 										<textarea id="<?php echo esc_attr( $fid ); ?>" name="<?php echo esc_attr( $name ); ?>" rows="<?php echo 'code' === $type ? 6 : 3; ?>" class="large-text <?php echo 'code' === $type ? 'code' : ''; ?>"><?php echo esc_textarea( $val ); ?></textarea>
 									<?php elseif ( 'checkbox' === $type ) : ?>
 										<label><input id="<?php echo esc_attr( $fid ); ?>" type="checkbox" name="<?php echo esc_attr( $name ); ?>" value="1" <?php checked( '1', $val ); ?>> <?php esc_html_e( 'Bật', 'khoahoc' ); ?></label>
+									<?php elseif ( 'select' === $type ) : ?>
+										<select id="<?php echo esc_attr( $fid ); ?>" name="<?php echo esc_attr( $name ); ?>">
+											<?php foreach ( $field['options'] as $ok => $ol ) : ?>
+												<option value="<?php echo esc_attr( $ok ); ?>" <?php selected( (string) $ok, (string) $val ); ?>><?php echo esc_html( $ol ); ?></option>
+											<?php endforeach; ?>
+										</select>
+									<?php elseif ( 'number' === $type ) : ?>
+										<input id="<?php echo esc_attr( $fid ); ?>" type="number" class="small-text" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $val ); ?>" min="<?php echo esc_attr( isset( $field['min'] ) ? $field['min'] : 0 ); ?>" max="<?php echo esc_attr( isset( $field['max'] ) ? $field['max'] : '' ); ?>">
 									<?php elseif ( 'color' === $type ) : ?>
 										<input id="<?php echo esc_attr( $fid ); ?>" type="text" class="kh-color" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $val ); ?>" data-default-color="<?php echo esc_attr( $field['default'] ); ?>">
 									<?php elseif ( 'image' === $type ) : ?>

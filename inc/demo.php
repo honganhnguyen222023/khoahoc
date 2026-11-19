@@ -109,7 +109,7 @@ function kh_demo_home() {
 			'chip2Icon'  => 'file-spreadsheet',
 		),
 		kh_buttons( array( array( 'Xem các khóa học', '#khoa-hoc' ), array( 'Tư vấn qua Zalo', $zalo ) ) ) .
-		kh_list( array( 'Học trọn đời', 'Nhóm Zalo hỗ trợ không thời hạn', 'Kích hoạt tự động sau khi thanh toán' ), 'kh-checklist' )
+		kh_list( array( 'Học 12 tháng, xem lại không giới hạn', 'Học theo lộ trình, xong bài trước mở bài sau', 'Kích hoạt tự động sau khi thanh toán' ), 'kh-checklist' )
 	);
 
 	$stats = '';
@@ -195,7 +195,7 @@ function kh_demo_home() {
 		array(
 			'eyebrow' => 'Khóa học',
 			'title'   => 'Chọn khóa theo <strong>việc bạn cần</strong>',
-			'text'    => 'Thanh toán một lần, học trọn đời trên điện thoại hoặc máy tính. Học phí đã gồm VAT.',
+			'text'    => 'Thanh toán một lần, học 12 tháng trên điện thoại hoặc máy tính. Học phí đã gồm VAT.',
 			'bg'      => 'soft',
 			'anchor'  => 'khoa-hoc',
 		),
@@ -308,7 +308,7 @@ function kh_demo_faq() {
 		array( 'Chưa biết gì về Excel có học được không?', 'Được. Khóa Excel nền tảng bắt đầu từ con số 0, chỉ cần bạn biết dùng máy tính.' ),
 		array( 'Không biết lập trình có học được AI cho Excel không?', 'Được. Khóa không dạy viết code. Bạn học cách mô tả công việc bằng tiếng Việt để AI làm, rồi kiểm tra kết quả.' ),
 		array( 'Học theo hình thức nào? Có lịch cố định không?', 'Học qua video quay sẵn trên website, không có lịch cố định. Xem trên điện thoại được, nhưng nên thực hành trên máy tính có Excel.' ),
-		array( 'Học được bao lâu? Có cập nhật bài mới không?', 'Thanh toán một lần, học trọn đời, xem lại không giới hạn. Bài mới thêm vào khóa bạn được học luôn, không mất thêm phí.' ),
+		array( 'Học được bao lâu? Có cập nhật bài mới không?', 'Thời hạn học 12 tháng kể từ ngày kích hoạt (xem ở trang từng khóa), xem lại không giới hạn trong thời gian đó. Hết hạn muốn học lại thì mua lại và học từ đầu. Bài mới thêm vào khóa bạn được học luôn, không mất thêm phí.' ),
 		array( 'Gặp chỗ chưa hiểu thì hỏi ai?', 'Mỗi khóa có nhóm hỗ trợ học viên trên Zalo, hỗ trợ không thời hạn. Link nhóm nằm trong email kích hoạt khóa học.' ),
 		array( 'Đăng ký xong bao lâu thì vào học được?', 'Bạn chuyển khoản ngay trên trang đăng ký. Hệ thống tự kích hoạt và gửi tài khoản về email trong vài phút.' ),
 		array( 'Có xuất hóa đơn cho công ty không?', 'Có, cho cả cá nhân và doanh nghiệp. Mua cho nhiều người hoặc cho công ty, bạn nhắn Zalo để được báo giá.' ),

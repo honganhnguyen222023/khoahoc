@@ -69,19 +69,40 @@ while ( have_posts() ) :
 							<?php if ( function_exists( 'wc_print_notices' ) && WC()->session ) : ?>
 								<?php wc_print_notices(); ?>
 							<?php endif; ?>
+							<p class="kh-buybox-term"><?php echo kh_icon( 'calendar', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( 'Thời hạn học: ' . $c['duration_txt'] ); ?></p>
 							<?php if ( $c['owned'] ) : ?>
-								<p class="kh-owned"><?php echo kh_icon( 'badge-check', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo kh_is_staff() && ! isset( kh_user_course_map()[ get_the_ID() ] ) ? esc_html__( 'Quản trị viên xem được mọi bài', 'khoahoc' ) : esc_html__( 'Bạn đã sở hữu khóa học này', 'khoahoc' ); ?></p>
-								<a class="kh-btn kh-btn-primary kh-btn-block" href="<?php echo esc_url( $c['register'] ); ?>"><?php echo kh_icon( 'play', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Vào học', 'khoahoc' ); ?></a>
+								<?php
+								$kh_admin_view = kh_is_staff() && ! $c['access'];
+								$kh_owned_txt  = $kh_admin_view ? 'Quản trị viên xem được mọi bài' : 'Bạn đã sở hữu khóa học này';
+								if ( ! $kh_admin_view && $c['access'] && $c['access']['expires'] ) {
+									$kh_owned_txt .= ' · hạn đến ' . date_i18n( 'd/m/Y', $c['access']['expires'] );
+								}
+								?>
+								<p class="kh-owned"><?php echo kh_icon( 'badge-check', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( $kh_owned_txt ); ?></p>
+								<a class="kh-btn kh-btn-primary kh-btn-block" href="<?php echo esc_url( $c['register'] ); ?>"><?php echo kh_icon( 'play', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( is_user_logged_in() && kh_progress( get_current_user_id(), get_the_ID() ) ? 'Học tiếp' : 'Vào học' ); ?></a>
 							<?php else : ?>
-								<a class="kh-btn kh-btn-primary kh-btn-block" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php esc_html_e( 'Đăng ký học ngay', 'khoahoc' ); ?></a>
+								<?php if ( $c['expired'] ) : ?>
+									<p class="kh-owned is-expired"><?php echo kh_icon( 'alert-circle', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( 'Khóa học của bạn đã hết hạn ngày ' . date_i18n( 'd/m/Y', $c['access']['expires'] ) . '. Mua lại để học từ đầu.' ); ?></p>
+								<?php endif; ?>
+								<a class="kh-btn kh-btn-primary kh-btn-block" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php echo esc_html( $c['expired'] ? 'Mua lại khóa học' : 'Đăng ký học ngay' ); ?></a>
 								<?php if ( $c['cart_url'] ) : ?>
 									<a class="kh-btn kh-btn-outline kh-btn-block" href="<?php echo esc_url( $c['cart_url'] ); ?>"><?php echo kh_icon( 'shopping-cart', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Thêm vào giỏ hàng', 'khoahoc' ); ?></a>
 								<?php endif; ?>
 								<?php
 								$kh_lessons = kh_course_lessons( get_the_ID() );
-								if ( $kh_lessons ) :
-									?>
-									<a class="kh-trial-link" href="<?php echo esc_url( is_user_logged_in() ? kh_learn_url( get_the_ID() ) : kh_login_url( kh_learn_url( get_the_ID() ) ) ); ?>"><?php echo kh_icon( 'play', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Học thử miễn phí bài đầu tiên', 'khoahoc' ); ?></a>
+								$kh_first   = $kh_lessons ? reset( $kh_lessons ) : null;
+								if ( $kh_first && ! $c['expired'] ) :
+									$kh_fstate = kh_lesson_state( get_the_ID(), $kh_first );
+									if ( 'trial_used' === $kh_fstate ) :
+										?>
+										<p class="kh-trial-link is-used"><?php echo kh_icon( 'lock', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Bạn đã dùng hết lượt học thử', 'khoahoc' ); ?></p>
+									<?php else : ?>
+										<?php
+										$kh_left = is_user_logged_in() ? kh_trial_left( get_current_user_id(), get_the_ID(), $kh_first['n'] ) : kh_trial_limit();
+										$kh_tl   = 'Học thử miễn phí bài đầu tiên' . ( $kh_left > 0 && kh_trial_limit() ? sprintf( ' (còn %d lượt)', $kh_left ) : '' );
+										?>
+										<a class="kh-trial-link" href="<?php echo esc_url( is_user_logged_in() ? kh_learn_url( get_the_ID() ) : kh_login_url( kh_learn_url( get_the_ID() ) ) ); ?>"><?php echo kh_icon( 'play', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( $kh_tl ); ?></a>
+									<?php endif; ?>
 								<?php endif; ?>
 								<?php if ( ! is_user_logged_in() ) : ?>
 									<p class="kh-buybox-login"><?php esc_html_e( 'Đã mua khóa này?', 'khoahoc' ); ?> <a href="<?php echo esc_url( kh_login_url( get_permalink() ) ); ?>"><?php esc_html_e( 'Đăng nhập', 'khoahoc' ); ?></a></p>
@@ -92,7 +113,7 @@ while ( have_posts() ) :
 							<?php endif; ?>
 							<ul class="kh-checks kh-checks-sm">
 								<?php
-								$kh_lines = $c['benefit_list'] ? $c['benefit_list'] : array( 'Học trọn đời, xem lại không giới hạn', 'Nhóm Zalo hỗ trợ không thời hạn', 'Học trên điện thoại hoặc máy tính' );
+								$kh_lines = $c['benefit_list'] ? $c['benefit_list'] : array( 'Xem lại không giới hạn trong thời hạn học', 'Học theo lộ trình: xong bài trước mở bài sau', 'Học trên điện thoại hoặc máy tính' );
 								foreach ( $kh_lines as $line ) :
 									?>
 									<li><?php echo kh_icon( 'check', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo kh_benefit( $line ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></li>

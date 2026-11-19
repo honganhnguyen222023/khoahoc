@@ -312,8 +312,8 @@ function kh_wc_grant_order( $order_id ) {
 	$opened = array();
 	foreach ( $order->get_items() as $item ) {
 		foreach ( kh_wc_product_courses( $item->get_product_id() ) as $cid ) {
-			if ( ! isset( kh_user_course_map( $user_id )[ $cid ] ) ) {
-				kh_grant_course( $user_id, $cid, 'order:' . $order->get_id() );
+			// Chưa có hoặc đã hết hạn: mở (lại) từ đầu. Còn hạn: giữ nguyên.
+			if ( kh_grant_course( $user_id, $cid, 'order:' . $order->get_id() ) ) {
 				$opened[] = get_the_title( $cid );
 			}
 		}

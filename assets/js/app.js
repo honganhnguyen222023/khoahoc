@@ -129,6 +129,110 @@
 		modal.showModal();
 	});
 
+	/* Learn page: count seconds actually watched; enough % -> lesson done -> next unlocks.
+	 * Seeking ahead does not count. Server re-checks access and minimum time. */
+	var lp = d.querySelector('.kh-learn-player[data-track]');
+	var nextBtn = d.querySelector('[data-next-wait]');
+	if (nextBtn) {
+		nextBtn.addEventListener('click', function (e) {
+			if (!nextBtn.hasAttribute('data-next-wait')) return;
+			e.preventDefault();
+			var st = d.querySelector('[data-status]');
+			if (st) { st.classList.remove('kh-shake'); void st.offsetWidth; st.classList.add('kh-shake'); }
+		});
+	}
+	if (lp) {
+		var cfg = lp.dataset, need = parseFloat(cfg.need) || 0.9, sent = cfg.done === '1';
+		var seen = {}, dur = 0, statusBox = d.querySelector('[data-status]');
+		var stText = d.querySelector('[data-status-text]'), stBar = d.querySelector('[data-status-bar]');
+		var setDone = function () {
+			sent = true;
+			if (statusBox) {
+				statusBox.classList.add('is-done');
+				statusBox.innerHTML = '<span>✓ Bạn đã học xong bài này.' + (nextBtn ? ' Bài tiếp theo đã mở.' : '') + '</span>';
+			}
+			if (nextBtn) {
+				nextBtn.removeAttribute('data-next-wait');
+				nextBtn.removeAttribute('aria-disabled');
+				nextBtn.removeAttribute('title');
+				nextBtn.classList.remove('is-disabled');
+				var lock = nextBtn.querySelector('.kh-svg');
+				if (lock && nextBtn.firstElementChild === lock) lock.remove();
+			}
+		};
+		var send = function () {
+			if (sent) return;
+			sent = true;
+			var fd = new FormData();
+			fd.append('action', 'kh_lesson_done');
+			fd.append('course', cfg.course);
+			fd.append('lesson', cfg.lesson);
+			fd.append('nonce', cfg.nonce);
+			fetch(cfg.ajax, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (r) {
+					if (r && r.success) return setDone();
+					sent = false;
+					var wait = r && r.data && r.data.wait;
+					if (wait) setTimeout(send, (wait + 1) * 1000);
+				})
+				.catch(function () { sent = false; setTimeout(send, 5000); });
+		};
+		var tick = function (cur, total) {
+			if (total > 0) dur = total;
+			if (!dur || cur < 0) return;
+			seen[Math.floor(cur)] = 1;
+			var pct = Math.min(1, Object.keys(seen).length / Math.max(1, Math.floor(dur)));
+			if (stBar) stBar.style.width = Math.round(pct * 100) + '%';
+			if (stText && !sent) stText.textContent = 'Đã xem ' + Math.round(pct * 100) + '% · cần xem ' + Math.round(need * 100) + '% để mở bài tiếp theo.';
+			if (pct >= need) send();
+		};
+		var loadScript = function (src, cb) {
+			var sc = d.createElement('script'); sc.src = src; sc.async = true; sc.onload = cb; d.head.appendChild(sc);
+		};
+		if (cfg.track === 'yt') {
+			var startYT = function () {
+				var p = new window.YT.Player('kh-yt-player', {
+					events: {
+						onReady: function () {
+							setInterval(function () {
+								if (p.getPlayerState && p.getPlayerState() === 1) tick(p.getCurrentTime(), p.getDuration());
+							}, 250);
+						},
+						onStateChange: function (e) { if (e.data === 0) tick(p.getDuration() - 0.5, p.getDuration()); }
+					}
+				});
+			};
+			if (window.YT && window.YT.Player) startYT();
+			else {
+				var prevReady = window.onYouTubeIframeAPIReady;
+				window.onYouTubeIframeAPIReady = function () { if (prevReady) prevReady(); startYT(); };
+				loadScript('https://www.youtube.com/iframe_api');
+			}
+		} else if (cfg.track === 'vimeo') {
+			loadScript('https://player.vimeo.com/api/player.js', function () {
+				var vp = new window.Vimeo.Player(lp.querySelector('iframe'));
+				vp.on('timeupdate', function (e) { tick(e.seconds, e.duration); });
+			});
+		} else if (cfg.track === 'video') {
+			var v = lp.querySelector('video');
+			if (v) v.addEventListener('timeupdate', function () { if (!v.paused) tick(v.currentTime, v.duration); });
+		} else {
+			/* Drive/Bunny/other embeds and documents: button unlocks after the minimum time. */
+			var btn = d.querySelector('[data-done-btn]'), left = parseInt(cfg.min, 10) || 0;
+			if (btn) {
+				var label = btn.textContent;
+				var count = function () {
+					if (left <= 0) { btn.disabled = false; btn.textContent = label; return; }
+					btn.textContent = label + ' (' + Math.floor(left / 60) + ':' + ('0' + (left % 60)).slice(-2) + ')';
+					left--; setTimeout(count, 1000);
+				};
+				count();
+				btn.addEventListener('click', function () { btn.disabled = true; send(); });
+			}
+		}
+	}
+
 	/* FAQ: keep one answer open at a time */
 	d.querySelectorAll('.kh-faq').forEach(function (faq) {
 		faq.addEventListener('toggle', function (e) {

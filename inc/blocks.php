@@ -538,34 +538,19 @@ function kh_render_lesson( $a ) {
 		$course_id = get_the_ID();
 		$n         = kh_lesson_counter();
 		$lessons   = kh_course_lessons( $course_id );
-		$lesson    = isset( $lessons[ $n ] ) ? $lessons[ $n ] : array( 'free' => false );
-		$owned     = kh_has_access( $course_id );
-		$free      = ! empty( $lesson['free'] );
-		$current   = kh_learn_index() === $n;
-
-		if ( $owned || ( $free && is_user_logged_in() ) ) {
-			$href  = kh_learn_url( $course_id, $n );
-			$icon  = 'doc' === $type ? 'file-text' : 'play';
-			$state = 'is-open';
-		} elseif ( $free ) {
-			$href  = kh_login_url( kh_learn_url( $course_id, $n ) );
-			$icon  = 'doc' === $type ? 'file-text' : 'play';
-			$state = 'is-open';
-		} else {
-			$href  = kh_learn_url( $course_id, $n );
-			$icon  = 'lock';
-			$state = 'is-locked';
+		if ( ! isset( $lessons[ $n ] ) ) {
+			return '';
 		}
-		$badge = $free && ! $owned ? '<span class="kh-preview">Học thử</span>' : '';
+		$row = kh_lesson_row_parts( $course_id, $lessons[ $n ] );
 		return sprintf(
 			'<li class="kh-lesson %1$s%2$s">%3$s<span class="kh-lesson-title"><a href="%4$s"%5$s>%6$s</a>%7$s</span><span class="kh-lesson-time">%8$s</span></li>',
-			$state,
-			$current ? ' is-current' : '',
-			kh_icon( $icon, 'kh-lesson-icon', 16 ),
-			esc_url( $href ),
-			'is-locked' === $state ? ' title="' . esc_attr__( 'Đăng ký khóa học để mở bài này', 'khoahoc' ) . '"' : ( $current ? ' aria-current="page"' : '' ),
+			esc_attr( $row['class'] ),
+			kh_learn_index() === $n ? ' is-current' : '',
+			kh_icon( $row['icon'], 'kh-lesson-icon', 16 ),
+			esc_url( $row['href'] ),
+			$row['title'] ? ' title="' . esc_attr( $row['title'] ) . '"' : '',
 			$title,
-			$badge,
+			$row['badge'],
 			$time
 		);
 	}
