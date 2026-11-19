@@ -36,3 +36,4 @@ mkdir -p dist
 rm -f "$OUT"
 (cd "$TMP" && zip -qrX "$ROOT/$OUT" khoahoc)
 echo "Đã tạo $OUT ($(du -h "$OUT" | cut -f1))"
+sh "$ROOT/scripts/copy-out.sh"

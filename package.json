@@ -6,7 +6,8 @@
     "build": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --minify",
     "dev": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --watch",
     "zip:theme": "sh scripts/package.sh theme",
-    "zip:source": "sh scripts/package.sh source"
+    "zip:source": "sh scripts/package.sh source",
+    "copy:dist": "sh scripts/copy-out.sh"
   },
   "repository": {
     "type": "git",

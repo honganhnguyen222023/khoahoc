@@ -5,3 +5,6 @@ node_modules/
 
 # Tài khoản/mật khẩu: chỉ lưu trên máy, không đưa lên GitHub
 /docs/Tai-khoan-website.txt
+
+# Thư mục chép file đóng gói (riêng từng máy)
+/.copy-dist-to
