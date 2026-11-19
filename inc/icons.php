@@ -21,6 +21,7 @@ function kh_icons() {
 		$icons['tiktok']   = '<path d="M16 3a5 5 0 0 0 5 5" /><path d="M16 3v11.5a4.5 4.5 0 1 1-4.5-4.5" />';
 		$icons['youtube']  = '<path d="M2.5 17a24 24 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49 49 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24 24 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49 49 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" />';
 		$icons['zalo']     = '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /><path d="M8 9h4l-4 6h4" /><path d="M15 9v6" />';
+		$icons['eye']          = '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0" /><circle cx="12" cy="12" r="3" />';
 		$icons['chevron-left'] = '<path d="m15 18-6-6 6-6" />';
 		$icons['log-out']      = '<path d="m16 17 5-5-5-5" /><path d="M21 12H9" /><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />';
 		ksort( $icons );

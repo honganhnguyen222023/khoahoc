@@ -329,6 +329,7 @@ function kh_reset_progress( $user_id, $course_id ) {
 		unset( $open[ $course_id ] );
 		update_user_meta( $user_id, '_kh_lesson_open', $open );
 	}
+	kh_views_reset( $user_id, $course_id );
 }
 
 /**
@@ -387,11 +388,18 @@ function kh_watch_need() {
  * Thời gian tối thiểu (giây) phải mở bài trước khi được tính là học xong:
  * đủ để xem phần cần xem ở tốc độ 2x (chống bấm "học xong" ngay).
  *
+ * Video thật ngắn hơn thời lượng ghi trong bài thì tính theo video thật.
+ *
  * @param array $lesson Lesson.
+ * @param int   $real   Độ dài video trình duyệt báo về (giây), 0 = không rõ.
  * @return int
  */
-function kh_lesson_min_seconds( $lesson ) {
-	return (int) floor( kh_duration_seconds( $lesson['duration'] ) * kh_watch_need() * 0.45 );
+function kh_lesson_min_seconds( $lesson, $real = 0 ) {
+	$sec = kh_duration_seconds( $lesson['duration'] );
+	if ( $real >= 30 && ( ! $sec || $real < $sec ) ) {
+		$sec = $sec ? $real : 0;
+	}
+	return (int) floor( $sec * kh_watch_need() * 0.45 );
 }
 
 // Bản cũ mặc định 90%: chuyển sang 80% (1 lần).
@@ -424,15 +432,16 @@ function kh_trial_limit() {
 }
 
 /**
- * Lượt xem thử đã dùng: [ count, last ].
+ * Lượt xem đã dùng của 1 bài: [ count, last ].
  *
- * @param int $user_id   User ID.
- * @param int $course_id Course ID.
- * @param int $n         Số bài.
+ * @param string $key       Meta key: _kh_trial_views (học thử) hoặc _kh_views (đã mua).
+ * @param int    $user_id   User ID.
+ * @param int    $course_id Course ID.
+ * @param int    $n         Số bài.
  * @return array
  */
-function kh_trial_record( $user_id, $course_id, $n ) {
-	$all = get_user_meta( $user_id, '_kh_trial_views', true );
+function kh_view_record( $key, $user_id, $course_id, $n ) {
+	$all = get_user_meta( $user_id, $key, true );
 	$r   = is_array( $all ) && isset( $all[ $course_id ][ $n ] ) ? $all[ $course_id ][ $n ] : array();
 	return array(
 		'count' => isset( $r['count'] ) ? (int) $r['count'] : 0,
@@ -450,54 +459,148 @@ function kh_trial_session() {
 }
 
 /**
- * Còn được xem thử bài này không.
+ * Còn lượt xem không (đang trong lượt xem dở thì vẫn được).
  *
- * @param int $user_id   User ID.
- * @param int $course_id Course ID.
- * @param int $n         Số bài.
+ * @param string $key       Meta key.
+ * @param int    $limit     Số lượt tối đa (0 = không giới hạn).
+ * @param int    $user_id   User ID.
+ * @param int    $course_id Course ID.
+ * @param int    $n         Số bài.
  * @return bool
  */
-function kh_trial_allowed( $user_id, $course_id, $n ) {
-	$limit = kh_trial_limit();
+function kh_view_allowed( $key, $limit, $user_id, $course_id, $n ) {
 	if ( ! $limit ) {
 		return true;
 	}
-	$r = kh_trial_record( $user_id, $course_id, $n );
+	$r = kh_view_record( $key, $user_id, $course_id, $n );
 	return $r['count'] < $limit || ( time() - $r['last'] ) < kh_trial_session();
+}
+
+/**
+ * Ghi 1 lượt xem (mở trang bài học). Tải lại trong 30 phút không tính thêm.
+ *
+ * @param string $key       Meta key.
+ * @param int    $user_id   User ID.
+ * @param int    $course_id Course ID.
+ * @param int    $n         Số bài.
+ */
+function kh_view_register( $key, $user_id, $course_id, $n ) {
+	$r = kh_view_record( $key, $user_id, $course_id, $n );
+	if ( ( time() - $r['last'] ) < kh_trial_session() ) {
+		return;
+	}
+	$all = get_user_meta( $user_id, $key, true );
+	$all = is_array( $all ) ? $all : array();
+	$all[ (int) $course_id ][ (int) $n ] = array( 'count' => $r['count'] + 1, 'last' => time() );
+	update_user_meta( $user_id, $key, $all );
+}
+
+/** Lượt xem thử đã dùng. */
+function kh_trial_record( $user_id, $course_id, $n ) {
+	return kh_view_record( '_kh_trial_views', $user_id, $course_id, $n );
+}
+
+/** Còn được xem thử bài này không. */
+function kh_trial_allowed( $user_id, $course_id, $n ) {
+	return kh_view_allowed( '_kh_trial_views', kh_trial_limit(), $user_id, $course_id, $n );
 }
 
 /**
  * Số lượt xem thử còn lại (không tính lượt đang xem).
  *
- * @param int $user_id   User ID.
- * @param int $course_id Course ID.
- * @param int $n         Số bài.
  * @return int -1 = không giới hạn.
  */
 function kh_trial_left( $user_id, $course_id, $n ) {
 	$limit = kh_trial_limit();
-	if ( ! $limit ) {
-		return -1;
-	}
-	return max( 0, $limit - kh_trial_record( $user_id, $course_id, $n )['count'] );
+	return $limit ? max( 0, $limit - kh_trial_record( $user_id, $course_id, $n )['count'] ) : -1;
+}
+
+/** Ghi 1 lượt xem thử. */
+function kh_trial_register_view( $user_id, $course_id, $n ) {
+	kh_view_register( '_kh_trial_views', $user_id, $course_id, $n );
+}
+
+/* ==========================================================================
+ * Lượt xem mỗi bài (học viên đã mua)
+ * ======================================================================= */
+
+/**
+ * Số lần được xem mỗi video bài học sau khi mua (0 = không giới hạn).
+ *
+ * @return int
+ */
+function kh_views_limit() {
+	return max( 0, (int) kh_opt( 'lesson_views' ) );
 }
 
 /**
- * Ghi 1 lượt xem thử (mở trang bài học). Tải lại trong 30 phút không tính thêm.
+ * Bài này có tính lượt xem không (chỉ bài video có link).
+ *
+ * @param array $lesson Lesson.
+ * @return bool
+ */
+function kh_views_counted( $lesson ) {
+	return kh_views_limit() && 'doc' !== $lesson['type'] && ! empty( $lesson['src'] );
+}
+
+/** Lượt xem đã dùng của học viên. */
+function kh_views_record( $user_id, $course_id, $n ) {
+	return kh_view_record( '_kh_views', $user_id, $course_id, $n );
+}
+
+/** Còn được xem bài này không. */
+function kh_views_allowed( $user_id, $course_id, $lesson ) {
+	return ! kh_views_counted( $lesson ) || kh_view_allowed( '_kh_views', kh_views_limit(), $user_id, $course_id, $lesson['n'] );
+}
+
+/**
+ * Số lượt xem còn lại (không tính lượt đang xem).
+ *
+ * @return int -1 = không giới hạn.
+ */
+function kh_views_left( $user_id, $course_id, $lesson ) {
+	if ( ! kh_views_counted( $lesson ) ) {
+		return -1;
+	}
+	return max( 0, kh_views_limit() - kh_views_record( $user_id, $course_id, $lesson['n'] )['count'] );
+}
+
+/**
+ * Đặt lại lượt xem (cả khóa hoặc 1 bài).
  *
  * @param int $user_id   User ID.
  * @param int $course_id Course ID.
- * @param int $n         Số bài.
+ * @param int $n         Số bài (0 = cả khóa).
  */
-function kh_trial_register_view( $user_id, $course_id, $n ) {
-	$r = kh_trial_record( $user_id, $course_id, $n );
-	if ( ( time() - $r['last'] ) < kh_trial_session() ) {
+function kh_views_reset( $user_id, $course_id, $n = 0 ) {
+	$all = get_user_meta( $user_id, '_kh_views', true );
+	if ( ! is_array( $all ) || ! isset( $all[ $course_id ] ) ) {
 		return;
 	}
-	$all = get_user_meta( $user_id, '_kh_trial_views', true );
-	$all = is_array( $all ) ? $all : array();
-	$all[ (int) $course_id ][ (int) $n ] = array( 'count' => $r['count'] + 1, 'last' => time() );
-	update_user_meta( $user_id, '_kh_trial_views', $all );
+	if ( $n ) {
+		unset( $all[ $course_id ][ $n ] );
+	} else {
+		unset( $all[ $course_id ] );
+	}
+	update_user_meta( $user_id, '_kh_views', $all );
+}
+
+/**
+ * Số bài đã hết lượt xem trong 1 khóa.
+ *
+ * @param int $user_id   User ID.
+ * @param int $course_id Course ID.
+ * @return int
+ */
+function kh_views_used_count( $user_id, $course_id ) {
+	$limit = kh_views_limit();
+	$all   = get_user_meta( $user_id, '_kh_views', true );
+	if ( ! $limit || ! is_array( $all ) || empty( $all[ $course_id ] ) ) {
+		return 0;
+	}
+	return count( array_filter( $all[ $course_id ], function ( $r ) use ( $limit ) {
+		return (int) $r['count'] >= $limit;
+	} ) );
 }
 
 /* ==========================================================================
@@ -513,6 +616,7 @@ function kh_trial_register_view( $user_id, $course_id, $n ) {
  *  expired   – khóa đã hết hạn, cần mua lại
  *  sequence  – cần học xong bài trước
  *  trial_used – đã hết lượt học thử
+ *  views_used – học viên đã xem bài này đủ số lần cho phép
  *
  * @param int   $course_id Course ID.
  * @param array $lesson    Lesson (từ kh_course_lessons).
@@ -530,6 +634,9 @@ function kh_lesson_state( $course_id, $lesson ) {
 	if ( kh_has_access( $course_id, $user_id ) ) {
 		if ( kh_sequential() && $lesson['n'] > kh_first_open_lesson( $course_id, $user_id ) ) {
 			return 'sequence';
+		}
+		if ( ! kh_views_allowed( $user_id, $course_id, $lesson ) ) {
+			return 'views_used';
 		}
 		return 'ok';
 	}
@@ -631,6 +738,16 @@ function kh_lesson_row_parts( $course_id, $lesson ) {
 			$out['class'] = 'is-open' . ( $done ? ' is-done' : '' );
 			$out['icon']  = $done ? 'check' : $media;
 			$out['title'] = $done ? 'Đã học xong' : '';
+			if ( ! kh_is_staff() ) {
+				$left = kh_views_left( get_current_user_id(), $course_id, $lesson );
+				if ( $left >= 0 && $left < kh_views_limit() ) {
+					$out['badge'] = $badge( sprintf( 'Còn %d lượt xem', $left ), $left ? '' : 'is-muted' );
+				}
+			}
+			break;
+		case 'views_used':
+			$out['badge'] = $badge( 'Hết lượt xem', 'is-muted' );
+			$out['title'] = sprintf( 'Bạn đã xem bài này %d lần (tối đa %d lần).', kh_views_limit(), kh_views_limit() );
 			break;
 		case 'trial':
 			$left         = kh_trial_left( get_current_user_id(), $course_id, $n );
@@ -928,6 +1045,9 @@ add_action(
 		if ( 'trial' === $state ) {
 			kh_trial_register_view( get_current_user_id(), $course_id, $n );
 		}
+		if ( 'ok' === $state && is_user_logged_in() && ! kh_is_staff() && kh_views_counted( $lesson ) ) {
+			kh_view_register( '_kh_views', get_current_user_id(), $course_id, $n );
+		}
 		if ( 'ok' === $state && is_user_logged_in() ) {
 			// Giờ bắt đầu học bài (chống bấm "học xong" quá nhanh).
 			$open = get_user_meta( get_current_user_id(), '_kh_lesson_open', true );
@@ -975,7 +1095,8 @@ add_action(
 		$n         = isset( $_POST['lesson'] ) ? absint( $_POST['lesson'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
 		check_ajax_referer( 'kh_learn_' . $course_id, 'nonce' );
 		$lessons = kh_course_lessons( $course_id );
-		if ( ! isset( $lessons[ $n ] ) || 'ok' !== kh_lesson_state( $course_id, $lessons[ $n ] ) ) {
+		// "views_used": đang xem dở lượt cuối (quá 30 phút) vẫn được ghi nhận học xong.
+		if ( ! isset( $lessons[ $n ] ) || ! in_array( kh_lesson_state( $course_id, $lessons[ $n ] ), array( 'ok', 'views_used' ), true ) ) {
 			wp_send_json_error( array( 'msg' => 'Không học được bài này.' ), 403 );
 		}
 		$user_id = get_current_user_id();
@@ -983,7 +1104,7 @@ add_action(
 			// Phải mở bài đủ lâu để xem phần cần xem ở tốc độ 2x.
 			$open = get_user_meta( $user_id, '_kh_lesson_open', true );
 			$from = is_array( $open ) && ! empty( $open[ $course_id ][ $n ] ) ? (int) $open[ $course_id ][ $n ] : time();
-			$need = kh_lesson_min_seconds( $lessons[ $n ] );
+			$need = kh_lesson_min_seconds( $lessons[ $n ], isset( $_POST['dur'] ) ? absint( $_POST['dur'] ) : 0 ); // phpcs:ignore WordPress.Security.NonceVerification
 			$wait = $need - ( time() - $from );
 			if ( $wait > 0 ) {
 				wp_send_json_error( array( 'msg' => 'Bạn học hơi nhanh, hãy xem tiếp bài học.', 'wait' => $wait ), 429 );
@@ -1106,6 +1227,10 @@ function kh_user_courses_box( $user ) {
 			if ( $lessons ) {
 				$note[] = sprintf( 'đã học %d/%d bài', count( array_intersect_key( kh_progress( $user->ID, $c->ID ), $lessons ) ), count( $lessons ) );
 			}
+			$used = kh_views_used_count( $user->ID, $c->ID );
+			if ( $used ) {
+				$note[] = sprintf( '%d bài hết lượt xem', $used );
+			}
 		}
 		printf(
 			'<label style="display:block;margin:0 0 6px"><input type="checkbox" name="kh_user_courses[]" value="%1$d" %2$s> %3$s%4$s</label>',
@@ -1119,6 +1244,13 @@ function kh_user_courses_box( $user ) {
 				'<label style="display:block;margin:-2px 0 10px 24px;color:#646970"><input type="checkbox" name="kh_user_courses_renew[]" value="%1$d"> %2$s</label>',
 				(int) $c->ID,
 				esc_html__( 'Gia hạn từ hôm nay (giữ tiến độ đã học)', 'khoahoc' )
+			);
+		}
+		if ( $src && kh_views_limit() ) {
+			printf(
+				'<label style="display:block;margin:-6px 0 10px 24px;color:#646970"><input type="checkbox" name="kh_user_courses_views[]" value="%1$d"> %2$s</label>',
+				(int) $c->ID,
+				esc_html( sprintf( 'Đặt lại lượt xem (xem lại mỗi bài thêm %d lần, giữ tiến độ đã học)', kh_views_limit() ) )
 			);
 		}
 	}
@@ -1149,6 +1281,12 @@ function kh_user_courses_save( $user_id ) {
 	foreach ( $renew as $cid ) {
 		if ( in_array( $cid, $want, true ) ) {
 			kh_renew_course( $user_id, $cid );
+		}
+	}
+	$views = isset( $_POST['kh_user_courses_views'] ) ? array_map( 'absint', (array) $_POST['kh_user_courses_views'] ) : array();
+	foreach ( $views as $cid ) {
+		foreach ( array_merge( array( $cid ), kh_course_bundle( $cid ) ) as $id ) {
+			kh_views_reset( $user_id, $id );
 		}
 	}
 	foreach ( array_keys( $map ) as $cid ) {

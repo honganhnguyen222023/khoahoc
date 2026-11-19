@@ -192,6 +192,7 @@
 			fd.append('course', cfg.course);
 			fd.append('lesson', cfg.lesson);
 			fd.append('nonce', cfg.nonce);
+			if (dur) fd.append('dur', Math.floor(dur));
 			fetch(cfg.ajax, { method: 'POST', body: fd, credentials: 'same-origin' })
 				.then(function (r) { return r.json(); })
 				.then(function (r) {

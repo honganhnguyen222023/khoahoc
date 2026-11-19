@@ -9,7 +9,8 @@
 defined( 'ABSPATH' ) || exit;
 
 // Public YouTube video used for the demo "Học thử" lessons. Replace with your own.
-const KH_DEMO_TRIAL_VIDEO = 'https://www.youtube.com/watch?v=k1VUZEVuDJ8';
+const KH_DEMO_TRIAL_VIDEO = 'https://www.youtube.com/watch?v=yUdrAymdbrA'; // ~3 phút 45 giây.
+const KH_DEMO_VIDEO_TIME  = '03:45';
 
 /**
  * Serialize one block.
@@ -417,7 +418,7 @@ function kh_demo_course_body( $c ) {
 	foreach ( $chapters as $title => $lessons ) {
 		$inner = '';
 		foreach ( $lessons as $l ) {
-			$inner .= kh_b( 'kh/lesson', array_filter( array( 'title' => $l[0], 'duration' => $l[1], 'video' => KH_DEMO_TRIAL_VIDEO, 'free' => $l[2] ) ) );
+			$inner .= kh_b( 'kh/lesson', array_filter( array( 'title' => $l[0], 'duration' => KH_DEMO_VIDEO_TIME, 'video' => KH_DEMO_TRIAL_VIDEO, 'free' => $l[2] ) ) );
 		}
 		$o    .= kh_b( 'kh/chapter', $first ? array( 'title' => $title, 'open' => true ) : array( 'title' => $title ), $inner );
 		$first = false;
@@ -833,3 +834,38 @@ function kh_demo_student_notice() {
 		esc_html__( 'Mở trang đăng nhập học viên', 'khoahoc' )
 	);
 }
+
+/**
+ * Dữ liệu mẫu cũ dùng video 33 phút: đổi sang video mẫu ~4 phút (1 lần).
+ * Chỉ sửa bài học đang dùng đúng video mẫu cũ.
+ */
+add_action(
+	'init',
+	function () {
+		if ( get_option( 'kh_demo_video_short' ) ) {
+			return;
+		}
+		update_option( 'kh_demo_video_short', 1 );
+		$old   = 'k1VUZEVuDJ8';
+		$posts = get_posts( array( 'post_type' => 'khoa_hoc', 'post_status' => 'any', 'posts_per_page' => -1, 's' => $old ) );
+		foreach ( $posts as $p ) {
+			$content = preg_replace_callback(
+				'/<!-- wp:kh\/lesson (\{.*?\}) \/-->/',
+				function ( $m ) use ( $old ) {
+					$a = json_decode( $m[1], true );
+					if ( ! is_array( $a ) || empty( $a['video'] ) || false === strpos( $a['video'], $old ) ) {
+						return $m[0];
+					}
+					$a['video']    = KH_DEMO_TRIAL_VIDEO;
+					$a['duration'] = KH_DEMO_VIDEO_TIME;
+					return '<!-- wp:kh/lesson ' . serialize_block_attributes( $a ) . ' /-->';
+				},
+				$p->post_content
+			);
+			if ( $content !== $p->post_content ) {
+				wp_update_post( array( 'ID' => $p->ID, 'post_content' => wp_slash( $content ) ) );
+			}
+		}
+	},
+	20
+);

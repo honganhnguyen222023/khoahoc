@@ -7,6 +7,7 @@
  *  trial      – học thử (còn lượt)
  *  sequence   – phải học xong bài trước
  *  trial_used – hết lượt học thử
+ *  views_used – đã xem bài này đủ số lần cho phép
  *  expired    – khóa hết hạn, mua lại học từ đầu
  *  buy        – chưa mua
  * Link video chỉ in ra khi xem được.
@@ -35,6 +36,8 @@ $free_n    = count( array_filter( wp_list_pluck( $lessons, 'free' ) ) );
 $track     = 'ok' === $state && $lesson['src'] && $user_id ? kh_video_track_type( $lesson['src'], $lesson['type'] ) : '';
 $next_wait = $next && 'ok' === $state && ! $is_done && kh_sequential() && ! kh_is_staff() && $lesson['src'];
 $price_txt = $c['price_html'] ? ' · ' . $c['price_html'] : '';
+$views_max = kh_views_limit();
+$views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted( $lesson ) ? kh_views_record( $user_id, $course_id, $n ) : null;
 ?>
 <div class="kh-learn">
 	<div class="kh-container">
@@ -60,8 +63,21 @@ $price_txt = $c['price_html'] ? ' · ' . $c['price_html'] : '';
 						}
 						?>
 					</p>
-				<?php elseif ( 'ok' === $state && $c['access'] && $c['access']['expires'] && ! kh_is_staff() ) : ?>
-					<p class="kh-learn-flag is-soft"><?php echo kh_icon( 'calendar', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( 'Hạn học đến ' . date_i18n( 'd/m/Y', $c['access']['expires'] ) ); ?></p>
+				<?php elseif ( 'ok' === $state && ! kh_is_staff() && ( $views_rec || ( $c['access'] && $c['access']['expires'] ) ) ) : ?>
+					<p class="kh-learn-flag is-soft"><?php echo kh_icon( $views_rec ? 'eye' : 'calendar', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						<?php
+						$bits = array();
+						if ( $views_rec ) {
+							$bits[] = $views_rec['count'] >= $views_max
+								? sprintf( 'Lượt xem cuối cùng (%1$d/%2$d) của bài này. Tải lại trang trong 30 phút vẫn xem được.', $views_rec['count'], $views_max )
+								: sprintf( 'Lượt xem %1$d/%2$d của bài này.', $views_rec['count'], $views_max );
+						}
+						if ( $c['access'] && $c['access']['expires'] ) {
+							$bits[] = 'Hạn học đến ' . date_i18n( 'd/m/Y', $c['access']['expires'] ) . '.';
+						}
+						echo esc_html( implode( ' ', $bits ) );
+						?>
+					</p>
 				<?php endif; ?>
 
 				<div class="kh-learn-player<?php echo $can_view ? '' : ' is-locked'; ?>"
@@ -97,6 +113,18 @@ $price_txt = $c['price_html'] ? ' · ' . $c['price_html'] : '';
 							<p>Khóa học đi theo lộ trình: xem hết bài <?php echo (int) $go; ?> thì bài tiếp theo tự mở.</p>
 							<div class="kh-learn-lock-actions">
 								<a class="kh-btn kh-btn-primary" href="<?php echo esc_url( kh_learn_url( $course_id, $go ) ); ?>"><?php echo kh_icon( 'play', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Học bài <?php echo (int) $go; ?></a>
+							</div>
+						</div>
+					<?php elseif ( 'views_used' === $state ) : ?>
+						<div class="kh-learn-lock">
+							<span class="kh-learn-lock-icon"><?php echo kh_icon( 'lock', '', 30 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<p class="kh-learn-lock-title">Bạn đã xem bài này <?php echo (int) $views_max; ?> lần</p>
+							<p>Mỗi video bài học được xem tối đa <?php echo (int) $views_max; ?> lần. Cần xem lại, bạn liên hệ để được mở thêm lượt xem.</p>
+							<div class="kh-learn-lock-actions">
+								<?php if ( $next && kh_can_view_lesson( $course_id, $next ) ) : ?>
+									<a class="kh-btn kh-btn-primary" href="<?php echo esc_url( kh_learn_url( $course_id, $next['n'] ) ); ?>"><?php echo kh_icon( 'play', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Học bài tiếp theo</a>
+								<?php endif; ?>
+								<a class="kh-btn kh-btn-outline" href="<?php echo esc_url( home_url( '/lien-he/' ) ); ?>">Liên hệ</a>
 							</div>
 						</div>
 					<?php elseif ( 'trial_used' === $state ) : ?>

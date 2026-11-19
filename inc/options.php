@@ -67,6 +67,7 @@ function kh_option_fields() {
 				'sequential'      => array( 'label' => 'Học xong bài trước mới mở bài sau', 'default' => '1', 'type' => 'checkbox', 'help' => 'Học viên phải xem xong bài 1 mới vào được bài 2, cứ thế đến hết khóa. Quản trị viên luôn xem được mọi bài.' ),
 				'watch_percent'   => array( 'label' => 'Xem bao nhiêu % thì tính là học xong (%)', 'default' => '80', 'type' => 'number', 'min' => 10, 'max' => 100, 'help' => 'Mặc định 80: xem được 80% bài trước là bài sau tự mở. Theme đếm số giây thật sự đã xem (tua qua không tính). Video Google Drive/Bunny và bài tài liệu dùng nút "Đã học xong".' ),
 				'trial_views'     => array( 'label' => 'Số lượt xem thử mỗi bài (tài khoản chưa mua)', 'default' => '2', 'type' => 'number', 'min' => 0, 'max' => 50, 'help' => 'Hết lượt thì bài học thử bị khóa. Tải lại trang trong 30 phút vẫn tính là 1 lượt. Nhập 0 = không giới hạn.' ),
+				'lesson_views'    => array( 'label' => 'Số lần xem mỗi video sau khi mua', 'default' => '2', 'type' => 'number', 'min' => 0, 'max' => 50, 'help' => 'Mặc định 2: học viên đã mua xem mỗi video bài học tối đa 2 lần, hết lượt thì bài đó khóa. Tải lại trang trong 30 phút vẫn tính là 1 lần. Muốn cho học viên xem thêm: Tài khoản → sửa học viên → tick "Đặt lại lượt xem". Nhập 0 = không giới hạn.' ),
 			),
 		),
 		'colors'  => array(
