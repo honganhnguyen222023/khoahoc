@@ -469,6 +469,82 @@
 	.kh-chapter.is-editing .kh-chapter-title { @apply m-0; }
 	.kh-lessons .block-editor-inner-blocks .kh-lesson { @apply border-b border-line; }
 
+	/* Lesson states */
+	.kh-lesson.is-locked .kh-lesson-icon { @apply text-muted; opacity: .7; }
+	.kh-lesson.is-locked .kh-lesson-title a { @apply text-body; }
+	.kh-lesson.is-open .kh-lesson-icon { @apply text-brand; }
+	.kh-lesson.is-current { @apply bg-brand-soft; }
+	.kh-lesson.is-current .kh-lesson-title a { @apply font-semibold text-brand-dark; }
+	.kh-lesson-nosrc { @apply rounded-full bg-surface px-2 py-0.5 text-[11px] text-muted; }
+
+	/* Buy box extras */
+	.kh-owned { @apply m-0 flex items-center gap-2 rounded-xl bg-brand-soft px-3 py-2.5 text-sm font-semibold text-brand-dark; }
+	.kh-trial-link { @apply mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold no-underline; }
+	.kh-buybox-login { @apply mb-0 mt-3 text-center text-sm text-muted; }
+	.kh-buybox-card .woocommerce-message, .kh-buybox-card .woocommerce-info, .kh-buybox-card .woocommerce-error { @apply mb-3 rounded-xl border-0 bg-surface p-3 text-sm; list-style: none; }
+
+	/* Learn page */
+	.kh-learn { @apply bg-surface; padding: clamp(1rem, .5rem + 1.5vw, 2rem) 0 clamp(3rem, 2rem + 3vw, 4.5rem); }
+	.kh-learn-layout { @apply mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8; }
+	.kh-learn-player { @apply overflow-hidden rounded-box bg-black shadow-card; aspect-ratio: 16 / 9; }
+	.kh-learn-player iframe, .kh-learn-player video { @apply block h-full w-full border-0; }
+	.kh-learn-player.is-locked { background: linear-gradient(135deg, var(--kh-deep), #0b1712); }
+	.kh-learn-player:has(.kh-learn-lock) { @apply bg-white; aspect-ratio: auto; min-height: 320px; }
+	.kh-learn-player.is-locked:has(.kh-learn-lock) { background: linear-gradient(135deg, var(--kh-deep), #0b1712); }
+	.kh-learn-lock { @apply flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-10 text-center; }
+	.kh-learn-player.is-locked .kh-learn-lock { @apply text-white/80; }
+	.kh-learn-lock-icon { @apply mb-4 grid h-16 w-16 place-items-center rounded-full bg-brand-soft text-brand-dark; }
+	.kh-learn-lock-title { @apply m-0 mb-2 font-head text-xl font-bold text-ink; }
+	.kh-learn-player.is-locked .kh-learn-lock-title { @apply text-white; }
+	.kh-learn-lock > p { @apply mt-0 max-w-[460px]; }
+	.kh-learn-lock-actions { @apply mt-2 flex flex-wrap justify-center gap-3; }
+	.kh-learn-player.is-locked .kh-btn-outline { @apply border-white/30 bg-transparent text-white; }
+	.kh-learn-player.is-locked .kh-btn-outline:hover { @apply border-white text-white; }
+	.kh-learn-lock-login { @apply mb-0 mt-4 text-sm; }
+	.kh-learn-player.is-locked .kh-learn-lock-login a { @apply text-white underline; }
+	.kh-learn-info { @apply mt-5; }
+	.kh-learn-chapter { @apply m-0 mb-1 text-[13px] font-semibold uppercase text-brand; letter-spacing: .06em; }
+	.kh-learn-title { @apply m-0 font-head font-extrabold text-ink; font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem); }
+	.kh-learn-time { @apply mb-0 mt-2 flex items-center gap-1.5 text-sm text-muted; }
+	.kh-learn-help { @apply mb-0 mt-2 text-[13px] text-muted; }
+	.kh-learn-nav { @apply mt-5 flex items-center justify-between gap-3 border-t border-line pt-5; }
+	.kh-learn-nav .kh-btn { @apply no-underline; }
+	.kh-learn-upsell { @apply mt-6 flex flex-col gap-4 rounded-box border border-line bg-white p-5 shadow-card sm:flex-row sm:items-center sm:justify-between; }
+	.kh-learn-upsell p { @apply m-0; }
+	.kh-learn-upsell-title { @apply font-head text-lg font-bold text-ink; }
+	.kh-learn-upsell .kh-btn { @apply flex-none no-underline; }
+	.kh-learn-side { @apply self-start overflow-hidden rounded-box border border-line bg-white shadow-card lg:sticky lg:top-24; }
+	.kh-learn-side-head { @apply border-b border-line px-5 py-4; }
+	.kh-learn-course { @apply font-head text-[16px] font-bold text-ink no-underline; }
+	.kh-learn-side-head p { @apply mb-2 mt-1 text-[13px] text-muted; }
+	.kh-learn-bar { @apply block h-1.5 overflow-hidden rounded-full bg-surface; }
+	.kh-learn-bar span { @apply block h-full rounded-full bg-brand; }
+	.kh-learn-list { @apply overflow-y-auto lg:max-h-[calc(100vh-15rem)]; }
+	.kh-learn-list-ch { @apply m-0 border-b border-line bg-surface px-5 py-2.5 text-[13px] font-bold text-ink; }
+	.kh-learn-list .kh-lesson { @apply px-5 py-2.5 text-[14px]; }
+	.kh-learn-list .kh-lessons { @apply m-0 list-none p-0; }
+
+	/* Account / my courses */
+	.kh-account.is-in::after { content: ""; @apply absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand ring-2 ring-white; }
+	.kh-account-h { @apply mb-4 mt-8 text-xl font-bold; }
+	.kh-mycourses { @apply m-0 grid list-none gap-4 p-0 sm:grid-cols-2; }
+	.kh-mycourse { @apply m-0 flex flex-col overflow-hidden rounded-card border border-line bg-white shadow-card; }
+	.kh-mycourse-media { @apply grid place-items-center bg-surface text-brand; aspect-ratio: 16 / 9; }
+	.kh-mycourse-media img { @apply h-full w-full rounded-none object-cover; }
+	.kh-mycourse-body { @apply flex flex-1 flex-col gap-2 p-4; }
+	.kh-mycourse-body h3 { @apply m-0 text-[16px] font-bold leading-snug; }
+	.kh-mycourse-body h3 a { @apply text-ink no-underline; }
+	.kh-mycourse-body p { @apply m-0 text-sm text-muted; }
+	.kh-mycourse-body .kh-btn { @apply mt-auto self-start no-underline; }
+	.kh-mycourses-empty { @apply rounded-card border border-dashed border-line p-6 text-center; }
+	.kh-mycourses-empty .kh-btn { @apply no-underline; }
+	.kh-login-note { @apply mb-6 flex items-center gap-3 rounded-card bg-brand-soft px-4 py-3 text-brand-dark; }
+	.kh-login-note p { @apply m-0; }
+	.kh-thanks { @apply my-6 rounded-box border border-line bg-white p-5 shadow-card; }
+	.kh-thanks.is-paid { border-color: var(--kh-mint); }
+	.kh-thanks h2 { @apply mt-0 text-xl; }
+	.kh-thanks .kh-btn { @apply no-underline; }
+
 	.kh-mobile-buy { @apply fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between gap-3 border-t border-line bg-white/95 px-4 py-3 lg:hidden; backdrop-filter: blur(8px); padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
 	.kh-mobile-buy strong { @apply block font-head text-lg font-extrabold text-ink; line-height: 1.1; }
 	.kh-mobile-buy s { @apply text-xs text-muted; }

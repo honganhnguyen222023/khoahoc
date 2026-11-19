@@ -47,7 +47,7 @@ $c = kh_course();
 			</div>
 			<div class="kh-fcourse-actions">
 				<a class="kh-btn kh-btn-outline" href="<?php echo esc_url( $c['detail'] ); ?>">Xem chi tiết</a>
-				<a class="kh-btn kh-btn-primary" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>>Đăng ký</a>
+				<a class="kh-btn kh-btn-primary" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php echo esc_html( $c['cta_text'] ); ?></a>
 			</div>
 		</div>
 	</div>

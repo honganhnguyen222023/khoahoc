@@ -18,6 +18,7 @@ $kh_includes = array(
 	'options',
 	'setup',
 	'post-types',
+	'lms',
 	'course-meta',
 	'blocks',
 	'contact',

@@ -509,13 +509,13 @@ function kh_render_cta( $a, $content ) {
  * @return string
  */
 function kh_render_chapter( $a, $content ) {
-	$count = substr_count( $content, '<li class="kh-lesson"' );
+	$count = substr_count( $content, '<li class="kh-lesson' );
 	return sprintf(
 		'<details class="kh-chapter"%4$s><summary><span class="kh-chapter-title">%1$s</span><span class="kh-chapter-count">%2$s</span>%3$s</summary><ol class="kh-lessons">%5$s</ol></details>',
 		kh_rich( kh_a( $a, 'title', 'Chương' ) ),
 		$count ? esc_html( sprintf( '%d bài', $count ) ) : '',
 		kh_icon( 'chevron-down', 'kh-chapter-caret', 18 ),
-		kh_a( $a, 'open', false ) ? ' open' : '',
+		kh_a( $a, 'open', false ) || false !== strpos( $content, 'is-current' ) ? ' open' : '',
 		$content
 	);
 }
@@ -523,27 +523,64 @@ function kh_render_chapter( $a, $content ) {
 /**
  * Lesson row.
  *
+ * Trong trang khóa học: bài xem được → link tới trang học (?bai=N);
+ * bài chưa mở → icon khóa. Link video thật không bao giờ in ra ở đây.
+ *
  * @param array $a Attributes.
  * @return string
  */
 function kh_render_lesson( $a ) {
 	$type  = kh_a( $a, 'type', 'video' );
 	$title = kh_rich( kh_a( $a, 'title' ) );
-	$url   = kh_a( $a, 'url' );
-	$yt    = kh_youtube_id( $url );
-	// "#..." placeholder (older demo content): play the course intro video instead.
-	if ( ! $yt && 0 === strpos( (string) $url, '#' ) && 'khoa_hoc' === get_post_type() ) {
-		$yt = kh_youtube_id( get_post_meta( get_the_ID(), '_kh_video', true ) );
+	$time  = esc_html( kh_a( $a, 'duration' ) );
+
+	if ( 'khoa_hoc' === get_post_type() && ! is_admin() && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		$course_id = get_the_ID();
+		$n         = kh_lesson_counter();
+		$lessons   = kh_course_lessons( $course_id );
+		$lesson    = isset( $lessons[ $n ] ) ? $lessons[ $n ] : array( 'free' => false );
+		$owned     = kh_has_access( $course_id );
+		$free      = ! empty( $lesson['free'] );
+		$current   = kh_learn_index() === $n;
+
+		if ( $owned || ( $free && is_user_logged_in() ) ) {
+			$href  = kh_learn_url( $course_id, $n );
+			$icon  = 'doc' === $type ? 'file-text' : 'play';
+			$state = 'is-open';
+		} elseif ( $free ) {
+			$href  = kh_login_url( kh_learn_url( $course_id, $n ) );
+			$icon  = 'doc' === $type ? 'file-text' : 'play';
+			$state = 'is-open';
+		} else {
+			$href  = kh_learn_url( $course_id, $n );
+			$icon  = 'lock';
+			$state = 'is-locked';
+		}
+		$badge = $free && ! $owned ? '<span class="kh-preview">Học thử</span>' : '';
+		return sprintf(
+			'<li class="kh-lesson %1$s%2$s">%3$s<span class="kh-lesson-title"><a href="%4$s"%5$s>%6$s</a>%7$s</span><span class="kh-lesson-time">%8$s</span></li>',
+			$state,
+			$current ? ' is-current' : '',
+			kh_icon( $icon, 'kh-lesson-icon', 16 ),
+			esc_url( $href ),
+			'is-locked' === $state ? ' title="' . esc_attr__( 'Đăng ký khóa học để mở bài này', 'khoahoc' ) . '"' : ( $current ? ' aria-current="page"' : '' ),
+			$title,
+			$badge,
+			$time
+		);
 	}
+
+	// Ngoài trang khóa học (VD: giáo trình đặt trong một trang thường): link học thử cũ.
+	$url = kh_a( $a, 'url' );
+	$yt  = kh_youtube_id( $url );
 	if ( $yt ) {
-		// Opens in a popup player (assets/js/app.js); plain YouTube link without JS.
 		$label = sprintf(
 			'<a href="%1$s" data-yt-modal="%2$s" target="_blank" rel="noopener">%3$s</a><span class="kh-preview">Học thử</span>',
 			esc_url( 'https://www.youtube.com/watch?v=' . $yt ),
 			esc_attr( $yt ),
 			$title
 		);
-	} elseif ( $url ) {
+	} elseif ( $url && 0 !== strpos( $url, '#' ) ) {
 		$label = '<a ' . kh_link_attrs( $url ) . '>' . $title . '</a><span class="kh-preview">Học thử</span>';
 	} else {
 		$label = '<span>' . $title . '</span>';
@@ -552,6 +589,6 @@ function kh_render_lesson( $a ) {
 		'<li class="kh-lesson">%1$s<span class="kh-lesson-title">%2$s</span><span class="kh-lesson-time">%3$s</span></li>',
 		kh_icon( 'doc' === $type ? 'file-text' : ( $url ? 'play' : 'lock' ), 'kh-lesson-icon', 16 ),
 		$label,
-		esc_html( kh_a( $a, 'duration' ) )
+		$time
 	);
 }

@@ -77,9 +77,10 @@
 		if (!btn) return;
 		var id = btn.getAttribute('data-yt');
 		var f = d.createElement('iframe');
-		f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0';
+		f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0&playsinline=1';
 		f.title = btn.getAttribute('aria-label') || 'Video';
-		f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+		f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+		f.referrerPolicy = 'strict-origin-when-cross-origin';
 		f.allowFullscreen = true;
 		btn.replaceWith(f);
 	});
@@ -118,9 +119,10 @@
 			modal.addEventListener('close', function () { modal.querySelector('.kh-vmodal-frame').innerHTML = ''; });
 		}
 		var f = d.createElement('iframe');
-		f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(link.getAttribute('data-yt-modal')) + '?autoplay=1&rel=0';
+		f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(link.getAttribute('data-yt-modal')) + '?autoplay=1&rel=0&playsinline=1';
 		f.title = link.textContent;
-		f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+		f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+		f.referrerPolicy = 'strict-origin-when-cross-origin';
 		f.allowFullscreen = true;
 		modal.querySelector('.kh-vmodal-title').textContent = 'Học thử: ' + link.textContent;
 		modal.querySelector('.kh-vmodal-frame').appendChild(f);

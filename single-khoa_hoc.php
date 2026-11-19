@@ -8,6 +8,10 @@
 get_header();
 while ( have_posts() ) :
 	the_post();
+	if ( kh_learn_index() ) {
+		get_template_part( 'template-parts/course', 'learn' );
+		continue;
+	}
 	$c     = kh_course();
 	$yt    = kh_youtube_id( $c['video'] );
 	$terms = get_the_terms( get_the_ID(), 'danh_muc_khoa_hoc' );
@@ -62,7 +66,27 @@ while ( have_posts() ) :
 									<span class="kh-save"><?php echo esc_html( $c['save_html'] ); ?></span>
 								<?php endif; ?>
 							</p>
-							<a class="kh-btn kh-btn-primary kh-btn-block" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php esc_html_e( 'Đăng ký học', 'khoahoc' ); ?></a>
+							<?php if ( function_exists( 'wc_print_notices' ) && WC()->session ) : ?>
+								<?php wc_print_notices(); ?>
+							<?php endif; ?>
+							<?php if ( $c['owned'] ) : ?>
+								<p class="kh-owned"><?php echo kh_icon( 'badge-check', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo kh_is_staff() && ! isset( kh_user_course_map()[ get_the_ID() ] ) ? esc_html__( 'Quản trị viên xem được mọi bài', 'khoahoc' ) : esc_html__( 'Bạn đã sở hữu khóa học này', 'khoahoc' ); ?></p>
+								<a class="kh-btn kh-btn-primary kh-btn-block" href="<?php echo esc_url( $c['register'] ); ?>"><?php echo kh_icon( 'play', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Vào học', 'khoahoc' ); ?></a>
+							<?php else : ?>
+								<a class="kh-btn kh-btn-primary kh-btn-block" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php esc_html_e( 'Đăng ký học ngay', 'khoahoc' ); ?></a>
+								<?php if ( $c['cart_url'] ) : ?>
+									<a class="kh-btn kh-btn-outline kh-btn-block" href="<?php echo esc_url( $c['cart_url'] ); ?>"><?php echo kh_icon( 'shopping-cart', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Thêm vào giỏ hàng', 'khoahoc' ); ?></a>
+								<?php endif; ?>
+								<?php
+								$kh_lessons = kh_course_lessons( get_the_ID() );
+								if ( $kh_lessons ) :
+									?>
+									<a class="kh-trial-link" href="<?php echo esc_url( is_user_logged_in() ? kh_learn_url( get_the_ID() ) : kh_login_url( kh_learn_url( get_the_ID() ) ) ); ?>"><?php echo kh_icon( 'play', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php esc_html_e( 'Học thử miễn phí bài đầu tiên', 'khoahoc' ); ?></a>
+								<?php endif; ?>
+								<?php if ( ! is_user_logged_in() ) : ?>
+									<p class="kh-buybox-login"><?php esc_html_e( 'Đã mua khóa này?', 'khoahoc' ); ?> <a href="<?php echo esc_url( kh_login_url( get_permalink() ) ); ?>"><?php esc_html_e( 'Đăng nhập', 'khoahoc' ); ?></a></p>
+								<?php endif; ?>
+							<?php endif; ?>
 							<?php if ( kh_zalo_url() ) : ?>
 								<a class="kh-btn kh-btn-outline kh-btn-block" href="<?php echo esc_url( kh_zalo_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Hỏi thêm qua Zalo', 'khoahoc' ); ?></a>
 							<?php endif; ?>
@@ -124,7 +148,7 @@ while ( have_posts() ) :
 					<s><?php echo esc_html( $c['regular_html'] ); ?></s>
 				<?php endif; ?>
 			</div>
-			<a class="kh-btn kh-btn-primary kh-btn-sm" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php esc_html_e( 'Đăng ký học', 'khoahoc' ); ?></a>
+			<a class="kh-btn kh-btn-primary kh-btn-sm" <?php echo kh_link_attrs( $c['register'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php echo esc_html( $c['owned'] ? 'Vào học' : 'Đăng ký học' ); ?></a>
 		</div>
 	</article>
 	<?php

@@ -97,6 +97,34 @@ Menu **Liên hệ** (có số đỏ báo tin mới) hiện danh sách khách. M�
 
 > Nếu không nhận được email báo, cài plugin **WP Mail SMTP**. Nhiều hosting chặn gửi mail mặc định.
 
+## Bán khóa học, học viên và bài học bị khóa
+
+Cần cài plugin **WooCommerce** (miễn phí): **Plugin → Cài mới → WooCommerce → Kích hoạt**. Lần đầu vào trang quản trị sau đó, theme tự cài đặt sẵn:
+- Bật đăng ký tài khoản ở trang **Tài khoản** (có ô Họ tên, Số điện thoại) và bắt buộc có tài khoản khi thanh toán.
+- Tiền tệ VND, trang **Tài khoản** của theme là trang tài khoản WooCommerce.
+- Mỗi khóa học có học phí được tạo **1 sản phẩm ẩn**. Đổi tên hoặc giá khóa thì sản phẩm tự cập nhật theo.
+
+**Nhận tiền chuyển khoản:** vào **WooCommerce → Cài đặt → Thanh toán → Chuyển khoản ngân hàng**, bật lên và nhập số tài khoản. Khi tiền về, mở đơn hàng và đổi trạng thái thành **Hoàn thành**: khóa học tự mở cho học viên, kèm email báo. Muốn tiền về là tự mở khóa, hoặc nhận VNPay/MoMo, thì cài thêm plugin cổng thanh toán (ví dụ SePay). Đơn bị **Hủy** hoặc **Hoàn tiền** thì khóa học tự bị thu hồi.
+
+**Học viên thấy gì:**
+| | Bài đầu tiên + bài "Cho học thử" | Các bài khác |
+|---|---|---|
+| Chưa đăng nhập | Bấm vào sẽ được mời đăng nhập/đăng ký rồi quay lại đúng bài | 🔒 khóa |
+| Đã đăng nhập, chưa mua | Xem được | 🔒 khóa, bấm vào hiện nút Đăng ký học |
+| Đã mua (hoặc được admin mở) | Xem được | Xem được |
+
+Học viên đăng nhập, đăng ký hay đăng xuất đều về **trang chủ** (riêng khi đăng nhập để học thử thì quay lại đúng bài đó). Học viên không vào được trang quản trị và không thấy thanh quản trị màu đen.
+
+**Thêm video cho bài học:** trong khóa học, chọn khối **Bài học**, dán link vào ô **Link video bài học** ở cột phải. Nhận link YouTube (nên để "Không công khai"), Vimeo, Google Drive, Bunny Stream, file .mp4 hoặc mã `<iframe>`. Link chỉ hiện ra cho người được xem bài. Bật **Cho học thử miễn phí** nếu muốn mở thêm bài học thử ngoài bài đầu tiên.
+
+**Combo:** trong khóa Combo, đánh dấu các khóa ở mục **Combo gồm các khóa**. Mua combo thì học được tất cả các khóa đó.
+
+**Mở khóa thủ công** (ví dụ học viên chuyển khoản trực tiếp): **Tài khoản → Tất cả người dùng → Sửa** học viên → mục **Khóa học đã mở**, đánh dấu khóa cần mở rồi bấm **Cập nhật thành viên**.
+
+**Học viên quên mật khẩu:** ở trang **Tài khoản** bấm **Quên mật khẩu?**, nhập email, mở link trong email để đặt mật khẩu mới. Khóa đã mua vẫn giữ nguyên. Cần website gửi được email (xem ghi chú WP Mail SMTP ở trên). Admin cũng có thể đặt mật khẩu mới cho học viên ở **Tài khoản → Tất cả người dùng → Sửa → Đặt mật khẩu mới**.
+
+**Học viên mẫu để tự thử:** **Cài đặt website → Dữ liệu mẫu → Tạo học viên mẫu**. Theme tạo tài khoản `hocvien-demo` (email `hocvien-demo@example.com`), mở sẵn khóa "Excel từ cơ bản tới nâng cao" và hiện mật khẩu ngẫu nhiên **một lần**. Mở cửa sổ ẩn danh để đăng nhập thử. Bấm lại để đặt mật khẩu mới. Nhớ bấm **Xóa học viên mẫu** trước khi website chạy thật.
+
 ## Hệ thống thiết kế
 
 | Token | Giá trị | Sửa được trong admin |

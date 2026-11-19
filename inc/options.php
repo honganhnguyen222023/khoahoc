@@ -210,6 +210,7 @@ function kh_render_settings_page() {
 		<?php if ( isset( $_GET['kh_demo'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
 			<div class="notice notice-success"><p><?php esc_html_e( 'Đã nhập dữ liệu mẫu.', 'khoahoc' ); ?></p></div>
 		<?php endif; ?>
+		<?php kh_demo_student_notice(); ?>
 		<h2 class="nav-tab-wrapper kh-tabs">
 			<?php foreach ( $tabs as $id => $tab ) : ?>
 				<a href="#kh-tab-<?php echo esc_attr( $id ); ?>" class="nav-tab <?php echo $first ? 'nav-tab-active' : ''; ?>"><?php echo esc_html( $tab['label'] ); ?></a>
@@ -258,6 +259,7 @@ function kh_render_settings_page() {
 			<div class="kh-tab" id="kh-tab-tools" style="display:none">
 				<p><?php esc_html_e( 'Tạo lại trang chủ mẫu, trang Giới thiệu, Liên hệ, 6 khóa học mẫu và menu. Trang đã có cùng tên sẽ không bị ghi đè.', 'khoahoc' ); ?></p>
 				<p><a class="button button-secondary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=kh_import_demo' ), 'kh_import_demo' ) ); ?>"><?php esc_html_e( 'Nhập dữ liệu mẫu', 'khoahoc' ); ?></a></p>
+				<?php kh_demo_student_box(); ?>
 			</div>
 			<?php submit_button( __( 'Lưu thay đổi', 'khoahoc' ) ); ?>
 		</form>

@@ -111,16 +111,25 @@ add_filter(
 			return $html;
 		}
 		if ( ! is_user_logged_in() ) {
-			$lost = '<p class="kh-login-lost"><a href="' . esc_url( wp_lostpassword_url( get_permalink() ) ) . '">Quên mật khẩu?</a></p>';
+			$lost = '<p class="kh-login-lost"><a href="' . esc_url( wp_lostpassword_url( get_permalink() ) ) . '">Quên mật khẩu?</a>';
+			if ( get_option( 'users_can_register' ) ) {
+				$lost .= ' · <a href="' . esc_url( wp_registration_url() ) . '">Tạo tài khoản</a>';
+			}
+			$lost .= '</p>';
+			// Giữ link quay lại (VD: bài học thử) sau khi đăng nhập.
+			$back = isset( $_GET['redirect_to'] ) ? kh_front_redirect( wp_unslash( $_GET['redirect_to'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+			if ( $back ) {
+				$html = preg_replace( '#name="redirect_to" value="[^"]*"#', 'name="redirect_to" value="' . esc_attr( $back ) . '"', $html, 1 );
+			}
 			return preg_replace( '#</form>#', $lost . '</form>', $html, 1 );
 		}
 		$user = wp_get_current_user();
 		$out  = '<div class="wp-block-loginout kh-login kh-login-in">';
 		$out .= '<p class="kh-login-hello">Xin chào <strong>' . esc_html( $user->display_name ) . '</strong>, bạn đã đăng nhập.</p>';
 		$out .= '<div class="kh-login-actions">';
-		$out .= '<a class="kh-btn kh-btn-primary" href="' . esc_url( home_url( '/khoa-hoc/' ) ) . '">Vào khóa học</a>';
 		$out .= '<a class="kh-btn kh-btn-outline" href="' . esc_url( wp_logout_url( home_url( '/' ) ) ) . '">Đăng xuất</a>';
 		$out .= '</div></div>';
+		$out .= '<h2 class="kh-account-h">Khóa học của tôi</h2>' . kh_my_courses_html();
 		return $out;
 	},
 	10,

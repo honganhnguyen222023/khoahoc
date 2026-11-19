@@ -23,7 +23,8 @@ function kh_course_fields() {
 		'benefits'      => array( 'label' => 'Lợi ích nổi bật', 'type' => 'textarea', 'help' => 'Mỗi dòng một ý. Bọc chữ trong **hai dấu sao** để in đậm.' ),
 		'video'         => array( 'label' => 'Video giới thiệu (YouTube)', 'type' => 'url', 'help' => 'Dán link YouTube. Video chỉ tải khi người xem bấm Play (giúp trang nhanh).' ),
 		'register_url'  => array( 'label' => 'Link nút Đăng ký', 'type' => 'url', 'help' => 'Để trống: tự dùng sản phẩm WooCommerce bên dưới, nếu không có thì mở Zalo.' ),
-		'wc_product'    => array( 'label' => 'ID sản phẩm WooCommerce', 'type' => 'number', 'help' => 'Nếu bán qua WooCommerce: nút Đăng ký thêm sản phẩm này vào giỏ và chuyển tới thanh toán.' ),
+		'wc_product'    => array( 'label' => 'ID sản phẩm WooCommerce', 'type' => 'number', 'help' => 'Để trống: khi bật WooCommerce, theme tự tạo sản phẩm theo tên và học phí của khóa (tự cập nhật khi bạn đổi giá). Học viên mua xong được mở khóa tự động.' ),
+		'bundle'        => array( 'label' => 'Combo gồm các khóa', 'type' => 'courses', 'help' => 'Chỉ dùng cho khóa Combo: học viên mua combo được học tất cả các khóa đánh dấu ở đây.' ),
 		'detail_url'    => array( 'label' => 'Link "Xem chi tiết" riêng', 'type' => 'url', 'help' => 'Để trống = mở trang khóa học này. Dùng khi có landing page riêng.' ),
 		'featured'      => array( 'label' => 'Khóa nổi bật (thẻ lớn ở trang chủ)', 'type' => 'checkbox' ),
 	);
@@ -51,7 +52,11 @@ function kh_course( $id = 0 ) {
 	$out['icon']         = $out['icon'] ? $out['icon'] : 'book-open';
 	$out['cover']        = get_post_meta( $id, '_kh_cover', true ); // Demo cover image (theme file).
 	$out['benefit_list'] = array_values( array_filter( array_map( 'trim', explode( "\n", (string) $out['benefits'] ) ) ) );
-	$out['register']     = kh_course_register_url( $out );
+	$out['owned']        = kh_has_access( $id );
+	$out['product']      = function_exists( 'wc_get_product' ) && $out['wc_product'] && wc_get_product( $out['wc_product'] ) ? (int) $out['wc_product'] : 0;
+	$out['cart_url']     = $out['product'] && ! $out['register_url'] ? add_query_arg( 'add-to-cart', $out['product'], wc_get_cart_url() ) : '';
+	$out['register']     = $out['owned'] ? kh_learn_url( $id ) : kh_course_register_url( $out );
+	$out['cta_text']     = $out['owned'] ? 'Vào học' : 'Đăng ký';
 	return $out;
 }
 
@@ -110,6 +115,15 @@ function kh_course_box( $post ) {
 			case 'checkbox':
 				echo '<label><input id="' . esc_attr( $id ) . '" type="checkbox" value="1" name="' . esc_attr( $name ) . '" ' . checked( '1', $val, false ) . '> Có</label>';
 				break;
+			case 'courses':
+				$picked = array_map( 'absint', explode( ',', (string) $val ) );
+				$others = get_posts( array( 'post_type' => 'khoa_hoc', 'posts_per_page' => -1, 'post_status' => 'publish', 'post__not_in' => array( $post->ID ), 'orderby' => 'menu_order title', 'order' => 'ASC' ) );
+				echo '<fieldset id="' . esc_attr( $id ) . '">';
+				foreach ( $others as $o ) {
+					echo '<label style="display:block;margin:0 0 4px"><input type="checkbox" name="' . esc_attr( $name ) . '[]" value="' . (int) $o->ID . '" ' . checked( in_array( $o->ID, $picked, true ), true, false ) . '> ' . esc_html( $o->post_title ) . '</label>';
+				}
+				echo '</fieldset>';
+				break;
 			case 'icon':
 				echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '"><option value="">— Mặc định —</option>';
 				foreach ( array_keys( kh_icons() ) as $icon ) {
@@ -155,6 +169,9 @@ add_action(
 					break;
 				case 'checkbox':
 					$val = $raw ? '1' : '';
+					break;
+				case 'courses':
+					$val = implode( ',', array_filter( array_map( 'absint', (array) $raw ) ) );
 					break;
 				case 'icon':
 					$val = array_key_exists( $raw, kh_icons() ) ? $raw : '';

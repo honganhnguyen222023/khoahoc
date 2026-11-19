@@ -797,21 +797,40 @@
 		icon: 'video-alt3',
 		parent: ['kh/chapter'],
 		supports: { html: false },
-		attributes: { title: str(), duration: str(), url: str(), type: str('video') },
+		attributes: { title: str(), duration: str(), url: str(), type: str('video'), video: str(), free: { type: 'boolean', default: false } },
 		edit: function (props) {
 			var a = props.attributes;
+			// Bản cũ dùng "Link học thử" (url): chuyển sang ô video mới, vẫn giữ là bài học thử.
+			var src = a.video || a.url;
+			var free = a.free || (!a.video && !!a.url);
 			return el(
 				Fragment,
 				null,
 				inspector(panel('Bài học', [
 					select(props, 'type', 'Loại', [{ label: 'Video', value: 'video' }, { label: 'Tài liệu', value: 'doc' }]),
-					text(props, 'url', 'Link học thử (không bắt buộc)', 'Có link: hiện nhãn "Học thử" và cho bấm xem. Link YouTube sẽ phát trong khung video nổi ngay trên trang.')
+					el(c.TextareaControl, {
+						key: 'video',
+						label: a.type === 'doc' ? 'Link tài liệu' : 'Link video bài học',
+						help: 'Dán link YouTube (nên để chế độ "Không công khai"), Vimeo, Google Drive, Bunny Stream, file .mp4 hoặc mã nhúng <iframe>. Chỉ học viên đã mua (hoặc bài học thử) mới thấy link này.',
+						value: src,
+						rows: 2,
+						onChange: function (v) { props.setAttributes(a.url ? { video: v, url: '', free: true } : { video: v }); }
+					}),
+					el(c.ToggleControl, {
+						key: 'free',
+						label: 'Cho học thử miễn phí',
+						help: 'Học viên đăng nhập (chưa mua) được xem bài này. Bài đầu tiên của khóa luôn được học thử.',
+						checked: free,
+						onChange: function (v) { props.setAttributes(a.url && !a.video ? { video: a.url, url: '', free: v } : { free: v }); }
+					})
 				])),
 				el(
 					'div',
 					useBlockProps({ className: 'kh-lesson' }),
-					el('span', { className: 'kh-lesson-icon' }, Icon(a.type === 'doc' ? 'file-text' : (a.url ? 'play' : 'lock'), 16)),
+					el('span', { className: 'kh-lesson-icon' }, Icon(a.type === 'doc' ? 'file-text' : (free ? 'play' : 'lock'), 16)),
 					rt(props, 'title', 'span', 'Tên bài học…', 'kh-lesson-title'),
+					free ? el('span', { className: 'kh-preview' }, 'Học thử') : null,
+					!src ? el('span', { className: 'kh-lesson-nosrc' }, 'Chưa có video') : null,
 					el(RichText, { tagName: 'span', className: 'kh-lesson-time', value: a.duration, allowedFormats: [], placeholder: '05:30', onChange: function (v) { props.setAttributes({ duration: v }); } })
 				)
 			);

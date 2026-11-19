@@ -61,6 +61,9 @@
 					<span class="kh-cart-count"><?php echo (int) ( WC()->cart ? WC()->cart->get_cart_contents_count() : 0 ); ?></span>
 				</a>
 			<?php endif; ?>
+			<a class="kh-cart kh-account<?php echo is_user_logged_in() ? ' is-in' : ''; ?>" href="<?php echo esc_url( is_user_logged_in() ? kh_my_courses_url() : kh_account_url() ); ?>" aria-label="<?php echo esc_attr( is_user_logged_in() ? 'Khóa học của tôi' : 'Đăng nhập / Đăng ký' ); ?>" title="<?php echo esc_attr( is_user_logged_in() ? wp_get_current_user()->display_name : 'Đăng nhập / Đăng ký' ); ?>">
+				<?php echo kh_icon( 'user', '', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			</a>
 			<?php if ( kh_opt( 'header_cta_text' ) ) : ?>
 				<a class="kh-btn kh-btn-primary kh-btn-sm kh-header-cta" <?php echo kh_link_attrs( kh_opt( 'header_cta_url' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php echo esc_html( kh_opt( 'header_cta_text' ) ); ?></a>
 			<?php endif; ?>
@@ -86,6 +89,12 @@
 			?>
 		</nav>
 		<div class="kh-drawer-actions">
+			<?php if ( is_user_logged_in() ) : ?>
+				<a class="kh-btn kh-btn-outline" href="<?php echo esc_url( kh_my_courses_url() ); ?>"><?php esc_html_e( 'Khóa học của tôi', 'khoahoc' ); ?></a>
+				<a class="kh-btn kh-btn-outline" href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>"><?php esc_html_e( 'Đăng xuất', 'khoahoc' ); ?></a>
+			<?php else : ?>
+				<a class="kh-btn kh-btn-outline" href="<?php echo esc_url( kh_account_url() ); ?>"><?php esc_html_e( 'Đăng nhập / Đăng ký', 'khoahoc' ); ?></a>
+			<?php endif; ?>
 			<?php if ( kh_opt( 'header_cta_text' ) ) : ?>
 				<a class="kh-btn kh-btn-primary" <?php echo kh_link_attrs( kh_opt( 'header_cta_url' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php echo esc_html( kh_opt( 'header_cta_text' ) ); ?></a>
 			<?php endif; ?>
