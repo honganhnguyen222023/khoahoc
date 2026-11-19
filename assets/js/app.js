@@ -142,7 +142,7 @@
 		});
 	}
 	if (lp) {
-		var cfg = lp.dataset, need = parseFloat(cfg.need) || 0.9, sent = cfg.done === '1';
+		var cfg = lp.dataset, need = parseFloat(cfg.need) || 0.8, sent = cfg.done === '1';
 		var seen = {}, dur = 0, statusBox = d.querySelector('[data-status]');
 		var stText = d.querySelector('[data-status-text]'), stBar = d.querySelector('[data-status-bar]');
 		var setDone = function () {
@@ -160,6 +160,30 @@
 				if (lock && nextBtn.firstElementChild === lock) lock.remove();
 			}
 		};
+		/* Lesson list on the right: tick this lesson, unlock the next one, update the count. */
+		var syncSide = function (data) {
+			var cur = d.querySelector('.kh-learn-list .kh-lesson.is-current');
+			if (!cur) return;
+			var items = [].slice.call(d.querySelectorAll('.kh-learn-list .kh-lesson'));
+			var nxt = items[items.indexOf(cur) + 1];
+			var icon = cur.querySelector('.kh-lesson-icon');
+			if (nxt && nxt.classList.contains('is-locked') && icon) {
+				var lock = nxt.querySelector('.kh-lesson-icon');
+				if (lock) lock.replaceWith(icon.cloneNode(true));
+				nxt.classList.remove('is-locked');
+				nxt.classList.add('is-open');
+				var a = nxt.querySelector('a');
+				if (a) a.removeAttribute('title');
+			}
+			cur.classList.add('is-done');
+			if (icon) icon.innerHTML = '<path d="M20 6 9 17l-5-5"/>';
+			var head = d.querySelector('.kh-learn-side-head p'), bar = d.querySelector('.kh-learn-side-head .kh-learn-bar span');
+			var total = head && head.textContent.match(/\/(\d+)/);
+			if (head && total && data && data.done) {
+				head.textContent = 'Đã học xong ' + data.done + '/' + total[1] + ' bài';
+				if (bar) bar.style.width = Math.round(data.done / total[1] * 100) + '%';
+			}
+		};
 		var send = function () {
 			if (sent) return;
 			sent = true;
@@ -171,7 +195,7 @@
 			fetch(cfg.ajax, { method: 'POST', body: fd, credentials: 'same-origin' })
 				.then(function (r) { return r.json(); })
 				.then(function (r) {
-					if (r && r.success) return setDone();
+					if (r && r.success) { setDone(); return syncSide(r.data); }
 					sent = false;
 					var wait = r && r.data && r.data.wait;
 					if (wait) setTimeout(send, (wait + 1) * 1000);

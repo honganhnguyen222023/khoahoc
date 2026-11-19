@@ -111,11 +111,11 @@ Cần cài plugin **WooCommerce** (miễn phí): **Plugin → Cài mới → Woo
 |---|---|---|
 | Chưa đăng nhập | Bấm vào sẽ được mời đăng nhập/đăng ký rồi quay lại đúng bài | 🔒 khóa |
 | Đã đăng nhập, chưa mua | Xem được **2 lượt**, hết lượt thì khóa (tải lại trong 30 phút vẫn tính 1 lượt) | 🔒 khóa, bấm vào hiện nút Đăng ký học |
-| Đã mua (còn hạn) hoặc được admin mở | Xem được | Mở **lần lượt**: xem xong 90% bài trước thì bài sau mới mở |
+| Đã mua (còn hạn) hoặc được admin mở | Xem được | Mở **lần lượt**: xem được 80% bài trước thì bài sau tự mở |
 | Khóa đã hết hạn | 🔒 khóa, hiện nút **Mua lại** (mua lại thì học từ đầu) | 🔒 khóa |
 
 **Học theo lộ trình, thời hạn học, lượt học thử** (sửa ở **Cài đặt website → Học viên & bài học**):
-- **Học xong bài trước mới mở bài sau** (bật sẵn). Theme đếm số giây học viên thật sự đã xem (tua qua không tính); đủ **90%** thì bài sau tự mở. Video YouTube, Vimeo, file .mp4 đo được tự động; video Google Drive/Bunny và bài tài liệu có nút **"Đã học xong"**, bấm được sau khoảng 40% thời lượng bài.
+- **Học xong bài trước mới mở bài sau** (bật sẵn). Theme đếm số giây học viên thật sự đã xem (tua qua không tính); đủ **80%** thì bài sau tự mở (danh sách bài bên phải cập nhật ngay). Video YouTube, Vimeo, file .mp4 đo được tự động; video Google Drive/Bunny và bài tài liệu có nút **"Đã học xong"**, bấm được sau khoảng 1/3 thời lượng bài.
 - **Thời hạn học mặc định: 12 tháng** kể từ ngày mở khóa (chọn Trọn đời / 3 / 6 / 12 / 24 tháng). Từng khóa đặt riêng ở ô **Thời hạn học** khi sửa khóa học. Combo: các khóa bên trong theo hạn của combo. Hết hạn thì khóa lại; mua lại sẽ học **từ đầu** (xóa tiến độ cũ).
 - **Số lượt xem thử mỗi bài: 2** (nhập 0 = không giới hạn).
 - Admin gia hạn cho học viên: **Tài khoản → Tất cả người dùng → Sửa** → mục **Khóa học đã mở** → tick **Gia hạn từ hôm nay** (giữ tiến độ đã học).

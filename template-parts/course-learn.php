@@ -71,7 +71,7 @@ $price_txt = $c['price_html'] ? ' · ' . $c['price_html'] : '';
 						data-lesson="<?php echo (int) $n; ?>"
 						data-need="<?php echo esc_attr( kh_watch_need() ); ?>"
 						data-done="<?php echo $is_done ? '1' : '0'; ?>"
-						data-min="<?php echo (int) floor( kh_duration_seconds( $lesson['duration'] ) * 0.4 ); ?>"
+						data-min="<?php echo (int) kh_lesson_min_seconds( $lesson ); ?>"
 						data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 						data-nonce="<?php echo esc_attr( wp_create_nonce( 'kh_learn_' . $course_id ) ); ?>"
 					<?php endif; ?>>

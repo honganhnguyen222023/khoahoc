@@ -65,7 +65,7 @@ function kh_option_fields() {
 					'help'    => 'Tính từ ngày mở khóa. Hết hạn thì khóa học bị khóa lại; mua lại sẽ học từ đầu. Từng khóa có thể đặt riêng ở ô "Thời hạn học" khi sửa khóa học.',
 				),
 				'sequential'      => array( 'label' => 'Học xong bài trước mới mở bài sau', 'default' => '1', 'type' => 'checkbox', 'help' => 'Học viên phải xem xong bài 1 mới vào được bài 2, cứ thế đến hết khóa. Quản trị viên luôn xem được mọi bài.' ),
-				'watch_percent'   => array( 'label' => 'Xem bao nhiêu % thì tính là học xong (%)', 'default' => '90', 'type' => 'number', 'min' => 10, 'max' => 100, 'help' => 'Theme đếm số giây thật sự đã xem (tua qua không tính). Video Google Drive/Bunny và bài tài liệu dùng nút "Đã học xong".' ),
+				'watch_percent'   => array( 'label' => 'Xem bao nhiêu % thì tính là học xong (%)', 'default' => '80', 'type' => 'number', 'min' => 10, 'max' => 100, 'help' => 'Mặc định 80: xem được 80% bài trước là bài sau tự mở. Theme đếm số giây thật sự đã xem (tua qua không tính). Video Google Drive/Bunny và bài tài liệu dùng nút "Đã học xong".' ),
 				'trial_views'     => array( 'label' => 'Số lượt xem thử mỗi bài (tài khoản chưa mua)', 'default' => '2', 'type' => 'number', 'min' => 0, 'max' => 50, 'help' => 'Hết lượt thì bài học thử bị khóa. Tải lại trang trong 30 phút vẫn tính là 1 lượt. Nhập 0 = không giới hạn.' ),
 			),
 		),

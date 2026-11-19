@@ -380,8 +380,35 @@ function kh_duration_seconds( $text ) {
  */
 function kh_watch_need() {
 	$p = (int) kh_opt( 'watch_percent' );
-	return max( 10, min( 100, $p ? $p : 90 ) ) / 100;
+	return max( 10, min( 100, $p ? $p : 80 ) ) / 100;
 }
+
+/**
+ * Thời gian tối thiểu (giây) phải mở bài trước khi được tính là học xong:
+ * đủ để xem phần cần xem ở tốc độ 2x (chống bấm "học xong" ngay).
+ *
+ * @param array $lesson Lesson.
+ * @return int
+ */
+function kh_lesson_min_seconds( $lesson ) {
+	return (int) floor( kh_duration_seconds( $lesson['duration'] ) * kh_watch_need() * 0.45 );
+}
+
+// Bản cũ mặc định 90%: chuyển sang 80% (1 lần).
+add_action(
+	'init',
+	function () {
+		if ( get_option( 'kh_watch80' ) ) {
+			return;
+		}
+		$opts = get_option( 'kh_settings' );
+		if ( is_array( $opts ) && isset( $opts['watch_percent'] ) && '90' === (string) $opts['watch_percent'] ) {
+			$opts['watch_percent'] = '80';
+			update_option( 'kh_settings', $opts );
+		}
+		update_option( 'kh_watch80', 1 );
+	}
+);
 
 /* ==========================================================================
  * Lượt học thử (tài khoản chưa mua)
@@ -953,10 +980,10 @@ add_action(
 		}
 		$user_id = get_current_user_id();
 		if ( ! kh_is_staff() ) {
-			// Phải mở bài ít nhất 40% thời lượng (xem tốc độ 2x vẫn đạt).
+			// Phải mở bài đủ lâu để xem phần cần xem ở tốc độ 2x.
 			$open = get_user_meta( $user_id, '_kh_lesson_open', true );
 			$from = is_array( $open ) && ! empty( $open[ $course_id ][ $n ] ) ? (int) $open[ $course_id ][ $n ] : time();
-			$need = (int) floor( kh_duration_seconds( $lessons[ $n ]['duration'] ) * 0.4 );
+			$need = kh_lesson_min_seconds( $lessons[ $n ] );
 			$wait = $need - ( time() - $from );
 			if ( $wait > 0 ) {
 				wp_send_json_error( array( 'msg' => 'Bạn học hơi nhanh, hãy xem tiếp bài học.', 'wait' => $wait ), 429 );
