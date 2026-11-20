@@ -1,4 +1,8 @@
 import Script from 'next/script';
+// Thứ tự giống WordPress: CSS WooCommerce trước, CSS theme sau (theme ghi đè).
+import '@/styles/woo/woocommerce-layout.css';
+import '@/styles/woo/woocommerce-smallscreen.css';
+import '@/styles/woo/woocommerce.css';
 import '@/styles/app.css';
 import { Html } from '@/components/Html';
 import { getCurrentUser } from '@/lib/auth';

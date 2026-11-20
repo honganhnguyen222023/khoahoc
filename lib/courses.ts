@@ -23,7 +23,7 @@ export type CourseView = Course & {
 /** Link nút "Đăng ký": link riêng → mua ngay (có học phí) → Zalo → trang Liên hệ. */
 export function registerUrl(c: Course, s: Settings): string {
   if (c.registerUrl) return c.registerUrl;
-  if ((c.price ?? 0) > 0) return `/thanh-toan/?mua=${c.id}`;
+  if ((c.price ?? 0) > 0) return `/gio-hang/them/?khoa=${c.id}&mua=1`;
   return zaloUrl(s) || '/lien-he/';
 }
 
@@ -46,7 +46,7 @@ export async function courseView(c: Course, user: User | null, s: Settings): Pro
     access,
     durationTxt: durationLabel(c, s),
     register: owned && user ? await continueUrl(c, isStaff(user) && !access ? 0 : user.id) : registerUrl(c, s),
-    cartUrl: (c.price ?? 0) > 0 && !c.registerUrl ? `/gio-hang/?them=${c.id}` : '',
+    cartUrl: (c.price ?? 0) > 0 && !c.registerUrl ? `/gio-hang/them/?khoa=${c.id}` : '',
     ctaText: owned ? 'Vào học' : expired ? 'Mua lại' : 'Đăng ký',
   };
 }
