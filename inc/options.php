@@ -239,7 +239,7 @@ function kh_render_settings_page() {
 				<a href="#kh-tab-<?php echo esc_attr( $id ); ?>" class="nav-tab <?php echo $first ? 'nav-tab-active' : ''; ?>"><?php echo esc_html( $tab['label'] ); ?></a>
 				<?php $first = false; ?>
 			<?php endforeach; ?>
-			<a href="#kh-tab-tools" class="nav-tab"><?php esc_html_e( 'Dữ liệu mẫu', 'khoahoc' ); ?></a>
+			<a href="#kh-tab-tools" class="nav-tab"><?php esc_html_e( 'Công cụ', 'khoahoc' ); ?></a>
 		</h2>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'kh_settings_group' ); ?>
@@ -291,6 +291,9 @@ function kh_render_settings_page() {
 				<p><?php esc_html_e( 'Tạo lại trang chủ mẫu, trang Giới thiệu, Liên hệ, 6 khóa học mẫu và menu. Trang đã có cùng tên sẽ không bị ghi đè.', 'khoahoc' ); ?></p>
 				<p><a class="button button-secondary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=kh_import_demo' ), 'kh_import_demo' ) ); ?>"><?php esc_html_e( 'Nhập dữ liệu mẫu', 'khoahoc' ); ?></a></p>
 				<?php kh_demo_student_box(); ?>
+				<h3><?php esc_html_e( 'Bản dịch tiếng Việt', 'khoahoc' ); ?></h3>
+				<p><?php esc_html_e( 'Website luôn hiển thị tiếng Việt. Nếu còn thấy chữ tiếng Anh (thường sau khi cài plugin mới), bấm nút dưới để tải lại bản dịch tiếng Việt cho WordPress và các plugin.', 'khoahoc' ); ?></p>
+				<p><a class="button button-secondary" href="<?php echo esc_url( function_exists( 'kh_vi_update_url' ) ? kh_vi_update_url() : admin_url( 'update-core.php' ) ); ?>"><?php esc_html_e( 'Tải lại bản dịch tiếng Việt', 'khoahoc' ); ?></a></p>
 			</div>
 			<?php submit_button( __( 'Lưu thay đổi', 'khoahoc' ) ); ?>
 		</form>
