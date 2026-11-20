@@ -147,19 +147,33 @@
 			input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 			return;
 		}
-		if ( ! window.wp || ! wp.media ) {
-			window.alert( 'Không mở được Thư viện ảnh. Tải lại trang và thử lại.' );
-			return;
-		}
-		var frame = wp.media( { title: 'Chọn ảnh', button: { text: 'Dùng ảnh này' }, multiple: false, library: { type: 'image' } } );
-		frame.on( 'select', function () {
-			var a = frame.state().get( 'selection' ).first().toJSON();
-			input.value = 'url' === pick.getAttribute( 'data-store' ) ? a.url : a.id;
-			var src = a.sizes && a.sizes.medium ? a.sizes.medium.url : a.url;
-			preview.innerHTML = '<img src="' + src + '" alt="">';
-			input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		// Bản Node: chọn ảnh từ máy rồi tải lên /quan-tri/tai-anh/.
+		var file = document.createElement( 'input' );
+		file.type = 'file';
+		file.accept = 'image/jpeg,image/png,image/webp,image/gif';
+		file.addEventListener( 'change', function () {
+			if ( ! file.files || ! file.files[0] ) {
+				return;
+			}
+			var fd = new FormData();
+			fd.append( 'file', file.files[0] );
+			pick.disabled = true;
+			pick.textContent = 'Đang tải…';
+			fetch( '/quan-tri/tai-anh/', { method: 'POST', body: fd, credentials: 'same-origin' } )
+				.then( function ( r ) { return r.json(); } )
+				.then( function ( r ) {
+					if ( ! r.ok ) {
+						window.alert( r.msg || 'Chưa tải được ảnh.' );
+						return;
+					}
+					input.value = r.url;
+					preview.innerHTML = '<img src="' + r.url + '" alt="">';
+					input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+				} )
+				.catch( function () { window.alert( 'Chưa tải được ảnh. Thử lại nhé.' ); } )
+				.then( function () { pick.disabled = false; pick.textContent = 'Tải ảnh lên'; } );
 		} );
-		frame.open();
+		file.click();
 	} );
 
 	/* ---- Cảnh báo khi rời trang chưa lưu -------------------------------- */
