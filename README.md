@@ -5,7 +5,8 @@ Giao diện dùng lại đúng CSS / JS của theme nên trông giống hệt (�
 
 ## Chạy trên máy Mac
 
-**Cách dễ nhất:** bấm đúp file **`Chay-website.command`**.
+**Cách dễ nhất:** bấm đúp file **`Chay-website.command`** (Mac) hoặc **`Chay-website.bat`** (Windows).
+Hướng dẫn từng bước cho máy khác (Windows / Mac): **`HUONG-DAN-CHAY-MAY-KHAC.txt`**.
 Website mở ở http://localhost:3000 – quản trị ở http://localhost:3000/quan-tri/
 
 Hoặc gõ lệnh (cần Node.js 18.18 trở lên; máy này: `~/.node22/bin`):

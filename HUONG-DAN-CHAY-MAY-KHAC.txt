@@ -1,0 +1,120 @@
+HƯỚNG DẪN CHẠY WEBSITE KHOAHOC (BẢN NODE.JS) TRÊN MÁY KHÁC
+Cập nhật: 20/11/2026
+
+Website chạy ngay trên máy tính của bạn để xem và thử, chưa cần hosting hay server.
+Sau khi chạy:
+  - Website:   http://localhost:3000
+  - Quản trị:  http://localhost:3000/quan-tri/
+
+Tài khoản thử (chỉ dùng trên máy, KHÔNG dùng cho website thật):
+  - Quản trị:  admin / admin
+  - Học viên:  hocvien / hocvien123      (đã mua khóa "Excel từ cơ bản tới nâng cao")
+  - Học viên:  hocvien2 / hocvien123     (có đơn #38 đang chờ xác nhận)
+
+
+============================================================
+A. MÁY WINDOWS (Windows 10 / 11)
+============================================================
+
+Bước 1 – Cài Node.js (làm 1 lần)
+  1. Vào https://nodejs.org , tải bản "LTS" (Node.js 22), chọn "Windows Installer (.msi)".
+  2. Mở file vừa tải, bấm Next liên tục rồi Install. Giữ nguyên các lựa chọn mặc định.
+  3. Cài xong thì khởi động lại máy (để Windows nhận Node.js).
+
+Bước 2 – Chép website sang máy
+  1. Chép file  khoahoc-node-source.zip  sang máy Windows (USB, Google Drive, Zalo…).
+  2. Bấm chuột phải vào file zip → "Extract All…" (Giải nén tất cả).
+  3. Nên giải nén vào ổ C cho ngắn gọn, ví dụ:  C:\khoahoc-node
+     (tránh để trong thư mục có tên quá dài hoặc trong OneDrive).
+
+Bước 3 – Tránh phần mềm diệt virus xóa nhầm file (làm 1 lần)
+  1. Mở "Windows Security" → "Virus & threat protection".
+  2. "Manage settings" → kéo xuống "Exclusions" → "Add or remove exclusions".
+  3. "Add an exclusion" → "Folder" → chọn thư mục  C:\khoahoc-node
+  (Lần trước bản WordPress từng bị Windows Defender xóa nhầm 1 file, nên làm bước này cho chắc.)
+
+Bước 4 – Chạy website
+  1. Mở thư mục  C:\khoahoc-node , bấm đúp file  Chay-website.bat
+  2. LẦN ĐẦU: máy cần có Internet và đợi khoảng 2–5 phút để cài thư viện, tạo dữ liệu.
+     Những lần sau chỉ mất vài giây.
+  3. Nếu Windows hỏi "Windows protected your PC": bấm "More info" → "Run anyway".
+  4. Nếu Windows hỏi tường lửa (Firewall) cho Node.js: bấm "Allow" (Cho phép).
+  5. Trình duyệt tự mở http://localhost:3000 . Nếu chưa thấy, tự gõ địa chỉ đó vào trình duyệt.
+
+Tắt website: đóng cửa sổ màu đen (cửa sổ lệnh). Muốn chạy lại: bấm đúp Chay-website.bat .
+
+
+============================================================
+B. MÁY MAC KHÁC
+============================================================
+
+  1. Cài Node.js 22 "LTS" tại https://nodejs.org (chọn "macOS Installer (.pkg)").
+  2. Chép và giải nén  khoahoc-node-source.zip  (bấm đúp file zip).
+  3. Bấm đúp file  Chay-website.command
+     - Nếu Mac báo "không thể mở vì không xác định được nhà phát triển":
+       bấm chuột phải vào file → Open → Open.
+  4. Lần đầu đợi vài phút để cài đặt, sau đó trình duyệt tự mở website.
+
+Tắt website: đóng cửa sổ Terminal.
+
+
+============================================================
+C. GẶP LỖI THƯỜNG GẶP
+============================================================
+
+• Cửa sổ báo "Chưa có Node.js" hoặc "'node' is not recognized"
+  → Chưa cài Node.js, hoặc cài xong chưa khởi động lại máy. Làm lại Bước 1.
+
+• Báo lỗi khi "npm install" (lần đầu)
+  → Kiểm tra Internet rồi bấm đúp lại Chay-website.bat .
+  → Vẫn lỗi: xóa thư mục  node_modules  trong thư mục website rồi chạy lại.
+
+• Báo "Port 3000 is in use" (cổng 3000 đang bận)
+  → Đang có 1 cửa sổ website khác chạy. Đóng cửa sổ đó (hoặc khởi động lại máy) rồi chạy lại.
+
+• Báo lỗi "EPERM", "operation not permitted", hoặc file biến mất
+  → Phần mềm diệt virus đang chặn. Làm Bước 3, rồi giải nén lại từ file zip.
+
+• Trang báo lỗi sau khi bạn thử nhiều thứ, muốn trở về dữ liệu ban đầu
+  → Tắt website, xóa file  prisma\khoahoc.db  (Mac: prisma/khoahoc.db), rồi chạy lại.
+    Website tự tạo lại dữ liệu mẫu như lúc mới cài. (Mọi thay đổi đã làm sẽ mất.)
+
+
+============================================================
+D. CẤU HÌNH THÊM (KHÔNG BẮT BUỘC)
+============================================================
+
+Mở file  .env  trong thư mục website bằng Notepad (Mac: TextEdit) để sửa.
+File này được tạo tự động ở lần chạy đầu tiên (chép từ .env.example).
+
+• Gửi email thật (quên mật khẩu, đơn hàng…):
+  điền SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM.
+  Chưa điền: email không gửi đi mà được lưu lại, xem ở
+  Quản trị → Cài đặt → tab "Email đã gửi".
+
+• Thanh toán VNPay:
+  đăng ký tài khoản thử (sandbox) miễn phí tại https://sandbox.vnpayment.vn/devreg/
+  rồi điền VNPAY_TMN_CODE và VNPAY_HASH_SECRET.
+  Sau đó bật trong Quản trị → Cài đặt → Thanh toán → "Cho thanh toán qua VNPay".
+
+• Thanh toán MoMo:
+  file .env đang dùng tài khoản THỬ công khai của MoMo (thanh toán thử, không mất tiền thật).
+  Khi bán thật, thay bằng mã MoMo doanh nghiệp của bạn.
+
+• Tài khoản ngân hàng nhận chuyển khoản (hiện mã QR cho học viên):
+  sửa ở Quản trị → Cài đặt → Thanh toán. Không cần sửa file .env.
+
+Sửa file .env xong: tắt website rồi chạy lại để áp dụng.
+
+
+============================================================
+E. LƯU Ý
+============================================================
+
+• Đây là bản chạy thử trên máy. Dữ liệu (học viên, đơn hàng…) nằm trong file
+  prisma\khoahoc.db của máy đó; mỗi máy có dữ liệu riêng, không tự đồng bộ với nhau.
+• Muốn đưa lên mạng cho học viên dùng thật: cần VPS hoặc dịch vụ chạy được Node.js
+  (hosting WordPress thông thường không chạy được). Xem phần "Đưa lên server" trong README.md.
+• Đổi mật khẩu tài khoản admin trước khi đưa website lên mạng.
+• Bản Node chưa có: trình sửa nội dung trang (trang chủ, bài giới thiệu dài của khóa học),
+  thư viện ảnh (thay bằng nút tải ảnh lên), mã giảm giá.
