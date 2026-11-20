@@ -26,6 +26,7 @@ $kh_includes = array(
 	'seo',
 	'woocommerce',
 	'demo',
+	'quantri',
 );
 
 // Thiếu file (giải nén lỗi, phần mềm diệt virus xóa nhầm…): bỏ qua và báo trong quản trị,
