@@ -446,6 +446,9 @@ function kh_view_record( $key, $user_id, $course_id, $n ) {
 	return array(
 		'count' => isset( $r['count'] ) ? (int) $r['count'] : 0,
 		'last'  => isset( $r['last'] ) ? (int) $r['last'] : 0,
+		// g = 1: lượt tính khi mở trang (video không theo dõi được) → tải lại trong 30 phút vẫn xem.
+		'g'     => ! empty( $r['g'] ),
+		'tok'   => isset( $r['tok'] ) ? (string) $r['tok'] : '',
 	);
 }
 
@@ -473,7 +476,7 @@ function kh_view_allowed( $key, $limit, $user_id, $course_id, $n ) {
 		return true;
 	}
 	$r = kh_view_record( $key, $user_id, $course_id, $n );
-	return $r['count'] < $limit || ( time() - $r['last'] ) < kh_trial_session();
+	return $r['count'] < $limit || ( $r['g'] && ( time() - $r['last'] ) < kh_trial_session() );
 }
 
 /**
@@ -486,13 +489,47 @@ function kh_view_allowed( $key, $limit, $user_id, $course_id, $n ) {
  */
 function kh_view_register( $key, $user_id, $course_id, $n ) {
 	$r = kh_view_record( $key, $user_id, $course_id, $n );
-	if ( ( time() - $r['last'] ) < kh_trial_session() ) {
+	if ( $r['g'] && ( time() - $r['last'] ) < kh_trial_session() ) {
 		return;
 	}
 	$all = get_user_meta( $user_id, $key, true );
 	$all = is_array( $all ) ? $all : array();
-	$all[ (int) $course_id ][ (int) $n ] = array( 'count' => $r['count'] + 1, 'last' => time() );
+	$all[ (int) $course_id ][ (int) $n ] = array( 'count' => $r['count'] + 1, 'last' => time(), 'g' => 1 );
 	update_user_meta( $user_id, $key, $all );
+}
+
+/**
+ * Ghi 1 lượt xem khi học viên XEM HẾT video (trình duyệt báo về, xem kh_view_used).
+ * Mỗi lần xem (token) chỉ tính 1 lần dù trình duyệt gửi lặp.
+ *
+ * @param string $key       Meta key.
+ * @param int    $user_id   User ID.
+ * @param int    $course_id Course ID.
+ * @param int    $n         Số bài.
+ * @param string $tok       Mã lần xem (do trình duyệt tạo).
+ * @return array Bản ghi mới.
+ */
+function kh_view_count_play( $key, $user_id, $course_id, $n, $tok ) {
+	$r = kh_view_record( $key, $user_id, $course_id, $n );
+	if ( '' !== $tok && $tok === $r['tok'] ) {
+		return $r;
+	}
+	$all = get_user_meta( $user_id, $key, true );
+	$all = is_array( $all ) ? $all : array();
+	$rec = array( 'count' => $r['count'] + 1, 'last' => time(), 'g' => 0, 'tok' => $tok );
+	$all[ (int) $course_id ][ (int) $n ] = $rec;
+	update_user_meta( $user_id, $key, $all );
+	return kh_view_record( $key, $user_id, $course_id, $n );
+}
+
+/**
+ * Video này trình duyệt có theo dõi được thời gian xem không (YouTube, Vimeo, file video).
+ *
+ * @param array $lesson Bài học.
+ * @return bool
+ */
+function kh_view_trackable( $lesson ) {
+	return ! empty( $lesson['src'] ) && 'doc' !== $lesson['type'] && in_array( kh_video_track_type( $lesson['src'], $lesson['type'] ), array( 'yt', 'vimeo', 'video' ), true );
 }
 
 /** Lượt xem thử đã dùng. */
@@ -1042,10 +1079,13 @@ add_action(
 			wp_safe_redirect( kh_login_url( kh_learn_url( $course_id, $n ) ) );
 			exit;
 		}
-		if ( 'trial' === $state ) {
+		// Video theo dõi được: lượt xem tính khi xem hết (AJAX kh_view_used), không tính khi mở trang.
+		// Video không theo dõi được (Google Drive, Bunny…): tính khi mở trang như trước.
+		$by_open = ! kh_view_trackable( $lesson );
+		if ( 'trial' === $state && $by_open ) {
 			kh_trial_register_view( get_current_user_id(), $course_id, $n );
 		}
-		if ( 'ok' === $state && is_user_logged_in() && ! kh_is_staff() && kh_views_counted( $lesson ) ) {
+		if ( 'ok' === $state && $by_open && is_user_logged_in() && ! kh_is_staff() && kh_views_counted( $lesson ) ) {
 			kh_view_register( '_kh_views', get_current_user_id(), $course_id, $n );
 		}
 		if ( 'ok' === $state && is_user_logged_in() ) {
@@ -1120,6 +1160,40 @@ add_action(
 				'done' => count( kh_progress( $user_id, $course_id ) ),
 			)
 		);
+	}
+);
+
+/* ==========================================================================
+ * Trình duyệt báo "đã xem hết 1 lượt video" (assets/js/app.js)
+ * ======================================================================= */
+
+add_action(
+	'wp_ajax_kh_view_used',
+	function () {
+		$course_id = isset( $_POST['course'] ) ? absint( $_POST['course'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+		$n         = isset( $_POST['lesson'] ) ? absint( $_POST['lesson'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+		$tok       = isset( $_POST['tok'] ) ? substr( sanitize_key( wp_unslash( $_POST['tok'] ) ), 0, 40 ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		check_ajax_referer( 'kh_learn_' . $course_id, 'nonce' );
+		$lessons = kh_course_lessons( $course_id );
+		if ( ! isset( $lessons[ $n ] ) || kh_is_staff() ) {
+			wp_send_json_success( array( 'left' => -1 ) );
+		}
+		$user_id = get_current_user_id();
+		$lesson  = $lessons[ $n ];
+		$state   = kh_lesson_state( $course_id, $lesson );
+		if ( 'trial' === $state && kh_trial_limit() ) {
+			$key   = '_kh_trial_views';
+			$limit = kh_trial_limit();
+		} elseif ( 'ok' === $state && kh_views_counted( $lesson ) ) {
+			$key   = '_kh_views';
+			$limit = kh_views_limit();
+		} elseif ( in_array( $state, array( 'views_used', 'trial_used' ), true ) ) {
+			wp_send_json_success( array( 'left' => 0, 'over' => true ) );
+		} else {
+			wp_send_json_success( array( 'left' => -1 ) );
+		}
+		$rec = kh_view_count_play( $key, $user_id, $course_id, $n, $tok );
+		wp_send_json_success( array( 'left' => max( 0, $limit - $rec['count'] ), 'limit' => $limit ) );
 	}
 );
 

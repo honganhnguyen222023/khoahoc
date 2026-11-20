@@ -33,11 +33,19 @@ $is_done   = ! empty( $progress[ $n ] );
 $with_src  = array_filter( wp_list_pluck( $lessons, 'src' ) );
 $done_n    = count( array_intersect_key( $progress, $with_src ) );
 $free_n    = count( array_filter( wp_list_pluck( $lessons, 'free' ) ) );
-$track     = 'ok' === $state && $lesson['src'] && $user_id ? kh_video_track_type( $lesson['src'], $lesson['type'] ) : '';
+$track     = in_array( $state, array( 'ok', 'trial' ), true ) && $lesson['src'] && $user_id ? kh_video_track_type( $lesson['src'], $lesson['type'] ) : '';
+$by_play   = $track && kh_view_trackable( $lesson ) && ! kh_is_staff();
 $next_wait = $next && 'ok' === $state && ! $is_done && kh_sequential() && ! kh_is_staff() && $lesson['src'];
 $price_txt = $c['price_html'] ? ' · ' . $c['price_html'] : '';
 $views_max = kh_views_limit();
 $views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted( $lesson ) ? kh_views_record( $user_id, $course_id, $n ) : null;
+// Số lượt còn lại cho trình duyệt (-1 = không giới hạn).
+$views_left = -1;
+if ( $by_play && 'trial' === $state && kh_trial_limit() ) {
+	$views_left = kh_trial_left( $user_id, $course_id, $n );
+} elseif ( $by_play && $views_rec ) {
+	$views_left = max( 0, $views_max - $views_rec['count'] );
+}
 ?>
 <div class="kh-learn">
 	<div class="kh-container">
@@ -56,6 +64,8 @@ $views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted(
 						<?php
 						if ( $left < 0 ) {
 							echo esc_html( 'Bạn đang học thử bài này.' );
+						} elseif ( $by_play ) {
+							echo esc_html( 1 === $left ? 'Bạn đang học thử. Đây là lượt xem thử cuối cùng của bài này.' : sprintf( 'Bạn đang học thử. Còn %d lượt xem thử (xem hết video tính 1 lượt).', $left ) );
 						} elseif ( $left > 0 ) {
 							echo esc_html( sprintf( 'Bạn đang học thử. Sau lượt này còn %d lượt xem thử.', $left ) );
 						} else {
@@ -67,7 +77,11 @@ $views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted(
 					<p class="kh-learn-flag is-soft"><?php echo kh_icon( $views_rec ? 'eye' : 'calendar', '', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						<?php
 						$bits = array();
-						if ( $views_rec ) {
+						if ( $views_rec && $by_play ) {
+							$bits[] = 1 === $views_left
+								? 'Đây là lượt xem cuối cùng của bài này: xem hết video thì bài sẽ khóa.'
+								: sprintf( 'Bạn còn %1$d/%2$d lượt xem bài này (xem hết video tính 1 lượt).', $views_left, $views_max );
+						} elseif ( $views_rec ) {
 							$bits[] = $views_rec['count'] >= $views_max
 								? sprintf( 'Lượt xem cuối cùng (%1$d/%2$d) của bài này. Tải lại trang trong 30 phút vẫn xem được.', $views_rec['count'], $views_max )
 								: sprintf( 'Lượt xem %1$d/%2$d của bài này.', $views_rec['count'], $views_max );
@@ -90,6 +104,9 @@ $views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted(
 						data-min="<?php echo (int) kh_lesson_min_seconds( $lesson ); ?>"
 						data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 						data-nonce="<?php echo esc_attr( wp_create_nonce( 'kh_learn_' . $course_id ) ); ?>"
+						data-mode="<?php echo esc_attr( $state ); ?>"
+						data-views-left="<?php echo (int) $views_left; ?>"
+						data-course-url="<?php echo esc_url( get_permalink( $course_id ) ); ?>"
 					<?php endif; ?>>
 					<?php if ( $can_view && $lesson['src'] && 'doc' !== $lesson['type'] ) : ?>
 						<?php echo kh_video_embed( $lesson['src'], $lesson['title'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
@@ -166,7 +183,7 @@ $views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted(
 					<?php endif; ?>
 				</div>
 
-				<?php if ( $track ) : ?>
+				<?php if ( $track && 'ok' === $state ) : ?>
 					<div class="kh-learn-status<?php echo $is_done ? ' is-done' : ''; ?>" data-status aria-live="polite">
 						<?php if ( $is_done ) : ?>
 							<?php echo kh_icon( 'check', '', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <span>Bạn đã học xong bài này.</span>
@@ -188,7 +205,8 @@ $views_rec = 'ok' === $state && $user_id && ! kh_is_staff() && kh_views_counted(
 					<?php if ( $lesson['duration'] ) : ?>
 						<p class="kh-learn-time"><?php echo kh_icon( 'clock', '', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( $lesson['duration'] ); ?></p>
 					<?php endif; ?>
-					<?php if ( $can_view && 'doc' !== $lesson['type'] && kh_youtube_id( $lesson['src'] ) ) : ?>
+					<?php // Bài có giới hạn lượt xem: không đưa link YouTube gốc (xem ngoài thì không đếm được). ?>
+					<?php if ( $can_view && 'doc' !== $lesson['type'] && kh_youtube_id( $lesson['src'] ) && $views_left < 0 && ! $views_rec && ! ( 'trial' === $state && kh_trial_limit() ) ) : ?>
 						<p class="kh-learn-help">Video không chạy? <a href="<?php echo esc_url( 'https://www.youtube.com/watch?v=' . kh_youtube_id( $lesson['src'] ) ); ?>" target="_blank" rel="noopener">Mở trên YouTube</a> (hoặc tắt trình chặn quảng cáo cho trang này).</p>
 					<?php endif; ?>
 				</div>

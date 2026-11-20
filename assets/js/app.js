@@ -203,9 +203,77 @@
 				})
 				.catch(function () { sent = false; setTimeout(send, 5000); });
 		};
+		/* Lượt xem: 1 lượt = 1 lần xem hết (đủ % cần xem) video. Mở / tải lại trang không tính.
+		 * Xem lại từ đầu (hết video rồi phát lại, hoặc tua ngược về nửa đầu) = lượt mới.
+		 * Lượt cuối đã tính: hết video hoặc tua ngược là khóa luôn trên trang. */
+		var trial = cfg.mode === 'trial';
+		var vLeft = parseInt(cfg.viewsLeft, 10); if (isNaN(vLeft)) vLeft = -1;
+		var counting = vLeft >= 0 && cfg.track !== 'manual';
+		var pass = { seen: {}, counted: false, no: 1 }, lastCur = -1, locked = false;
+		var tokBase = Math.random().toString(36).slice(2, 10);
+		var lockPlayer = function () {
+			if (locked) return;
+			locked = true;
+			lp.classList.add('is-locked');
+			lp.innerHTML = '<div class="kh-learn-lock"><span class="kh-learn-lock-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>'
+				+ '<p class="kh-learn-lock-title">' + (trial ? 'Bạn đã dùng hết lượt xem thử bài này' : 'Bạn đã xem hết lượt của bài này') + '</p>'
+				+ '<p>' + (trial ? 'Đăng ký khóa học để học tiếp toàn bộ bài học.' : 'Cần xem lại? Nhắn cho chúng tôi để được mở thêm lượt xem.') + '</p>'
+				+ '<div class="kh-learn-lock-actions"><a class="kh-btn kh-btn-primary" href="' + (cfg.courseUrl || '/') + '">' + (trial ? 'Xem khóa học' : 'Về trang khóa học') + '</a></div></div>';
+			var flag = d.querySelector('.kh-learn-flag');
+			if (flag) flag.remove();
+			var help = d.querySelector('.kh-learn-help');
+			if (help) help.remove();
+			var badge = d.querySelector('.kh-learn-list .kh-lesson.is-current .kh-preview');
+			if (badge) { badge.textContent = trial ? 'Hết lượt học thử' : 'Hết lượt xem'; badge.classList.add('is-muted'); }
+		};
+		var showLeft = function () {
+			var badge = d.querySelector('.kh-learn-list .kh-lesson.is-current .kh-preview');
+			if (badge) { badge.textContent = (trial ? 'Học thử · còn ' : 'Còn ') + vLeft + ' lượt' + (trial ? '' : ' xem'); if (!vLeft) badge.classList.add('is-muted'); }
+			var flag = d.querySelector('.kh-learn-flag');
+			if (flag && vLeft === 0) {
+				var t = flag.lastChild;
+				if (t && t.nodeType === 3) t.textContent = ' Đã tính lượt xem cuối cùng: xem xong video này thì bài sẽ khóa.';
+			}
+		};
+		var postView = function () {
+			pass.counted = true;
+			var fd = new FormData();
+			fd.append('action', 'kh_view_used');
+			fd.append('course', cfg.course);
+			fd.append('lesson', cfg.lesson);
+			fd.append('nonce', cfg.nonce);
+			fd.append('tok', tokBase + 'p' + pass.no);
+			fetch(cfg.ajax, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (r) {
+					if (!r || !r.success) return;
+					if (r.data.over) { vLeft = 0; lockPlayer(); return; }
+					if (r.data.left >= 0) { vLeft = r.data.left; showLeft(); }
+				})
+				.catch(function () { pass.counted = false; });
+		};
+		/* Bắt đầu lần xem mới (chỉ khi lần trước đã tính lượt). */
+		var newPass = function () {
+			if (!counting || !pass.counted) return;
+			if (vLeft === 0) { lockPlayer(); return; }
+			pass = { seen: {}, counted: false, no: pass.no + 1 };
+		};
+		var onEnded = function () { newPass(); };
 		var tick = function (cur, total) {
+			if (locked) return;
 			if (total > 0) dur = total;
 			if (!dur || cur < 0) return;
+			if (counting) {
+				// Tua ngược sau khi lần này đã tính lượt: lượt cuối → khóa; còn lượt → về nửa đầu là lần xem mới.
+				if (pass.counted && lastCur >= 0 && cur < lastCur - 5 && (vLeft === 0 || cur < dur * 0.5)) {
+					newPass();
+					if (locked) return;
+				}
+				lastCur = cur;
+				pass.seen[Math.floor(cur)] = 1;
+				if (!pass.counted && Object.keys(pass.seen).length / Math.max(1, Math.floor(dur)) >= need) postView();
+			}
+			if (trial) return;
 			seen[Math.floor(cur)] = 1;
 			var pct = Math.min(1, Object.keys(seen).length / Math.max(1, Math.floor(dur)));
 			if (stBar) stBar.style.width = Math.round(pct * 100) + '%';
@@ -224,7 +292,7 @@
 								if (p.getPlayerState && p.getPlayerState() === 1) tick(p.getCurrentTime(), p.getDuration());
 							}, 250);
 						},
-						onStateChange: function (e) { if (e.data === 0) tick(p.getDuration() - 0.5, p.getDuration()); }
+						onStateChange: function (e) { if (e.data === 0) { tick(p.getDuration() - 0.5, p.getDuration()); onEnded(); } }
 					}
 				});
 			};
@@ -238,10 +306,14 @@
 			loadScript('https://player.vimeo.com/api/player.js', function () {
 				var vp = new window.Vimeo.Player(lp.querySelector('iframe'));
 				vp.on('timeupdate', function (e) { tick(e.seconds, e.duration); });
+				vp.on('ended', onEnded);
 			});
 		} else if (cfg.track === 'video') {
 			var v = lp.querySelector('video');
-			if (v) v.addEventListener('timeupdate', function () { if (!v.paused) tick(v.currentTime, v.duration); });
+			if (v) {
+				v.addEventListener('timeupdate', function () { if (!v.paused) tick(v.currentTime, v.duration); });
+				v.addEventListener('ended', onEnded);
+			}
 		} else {
 			/* Drive/Bunny/other embeds and documents: button unlocks after the minimum time. */
 			var btn = d.querySelector('[data-done-btn]'), left = parseInt(cfg.min, 10) || 0;
