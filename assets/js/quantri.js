@@ -29,6 +29,22 @@
 		}
 	} );
 
+	/* ---- Hiện / ẩn mật khẩu ------------------------------------------- */
+	document.addEventListener( 'click', function ( e ) {
+		var btn = e.target.closest( '[data-qt-pass]' );
+		if ( ! btn ) {
+			return;
+		}
+		var wrap = btn.closest( '.qt-pass' );
+		var input = $( 'input', wrap );
+		var show = 'password' === input.type;
+		input.type = show ? 'text' : 'password';
+		wrap.classList.toggle( 'is-shown', show );
+		btn.setAttribute( 'aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu' );
+		btn.title = btn.getAttribute( 'aria-label' );
+		input.focus();
+	} );
+
 	/* ---- Bấm cả dòng trong bảng để mở --------------------------------- */
 	document.addEventListener( 'click', function ( e ) {
 		var row = e.target.closest( 'tr[data-href]' );

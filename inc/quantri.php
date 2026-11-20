@@ -41,7 +41,7 @@ function kh_qt_sections() {
 	return $s;
 }
 
-foreach ( array( 'dashboard', 'orders', 'students', 'courses', 'contacts', 'settings' ) as $kh_qt_file ) {
+foreach ( array( 'login', 'dashboard', 'orders', 'students', 'courses', 'contacts', 'settings' ) as $kh_qt_file ) {
 	$kh_qt_path = KH_DIR . '/inc/quantri/' . $kh_qt_file . '.php';
 	if ( is_readable( $kh_qt_path ) ) {
 		require_once $kh_qt_path;
@@ -117,8 +117,13 @@ add_action(
 			return;
 		}
 		nocache_headers();
+		// Trang đăng nhập / quên mật khẩu riêng (inc/quantri/login.php).
+		if ( in_array( $section, array( 'dang-nhap', 'quen-mat-khau' ), true ) ) {
+			kh_qt_auth_page( $section );
+			exit;
+		}
 		if ( ! is_user_logged_in() ) {
-			wp_safe_redirect( wp_login_url( kh_qt_url( $section, get_query_var( 'kh_qt_id' ) ) ) );
+			wp_safe_redirect( kh_qt_url( 'dang-nhap', '', array( 'quay-lai' => rawurlencode( kh_qt_url( $section, get_query_var( 'kh_qt_id' ) ) ) ) ) );
 			exit;
 		}
 		if ( ! kh_is_staff() ) {
@@ -300,7 +305,7 @@ function kh_qt_render( $section, $id, $fn ) {
 		<div class="qt-side-foot">
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener"><?php echo kh_qt_icon( 'globe' ); // phpcs:ignore ?> Xem website</a>
 			<a href="<?php echo esc_url( admin_url() ); ?>"><?php echo kh_qt_icon( 'sliders-horizontal' ); // phpcs:ignore ?> Quản trị nâng cao</a>
-			<a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>"><?php echo kh_qt_icon( 'log-out' ); // phpcs:ignore ?> Đăng xuất</a>
+			<a href="<?php echo esc_url( wp_logout_url( kh_qt_url( 'dang-nhap', '', array( 'da-dang-xuat' => 1 ) ) ) ); ?>"><?php echo kh_qt_icon( 'log-out' ); // phpcs:ignore ?> Đăng xuất</a>
 		</div>
 	</aside>
 	<div class="qt-scrim" data-qt-close></div>

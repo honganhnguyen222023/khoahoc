@@ -510,6 +510,51 @@ a.qt-chip:hover { background: var(--qt-primary-soft); color: var(--qt-primary-da
 .qt-dialog-body h3 { font-size: 18px; margin-bottom: 8px; }
 .qt-dialog-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 22px; }
 
+
+/* ---- Đăng nhập ---------------------------------------------------------- */
+.qt-auth { display: grid; grid-template-columns: minmax(340px, 44%) 1fr; min-height: 100vh; }
+.qt-auth-side {
+	position: relative; overflow: hidden;
+	display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
+	padding: 40px 48px;
+	background: var(--qt-side);
+	color: var(--qt-side-text);
+}
+.qt-auth-side::after {
+	content: ''; position: absolute; right: -120px; bottom: -120px;
+	width: 380px; height: 380px; border-radius: 50%;
+	background: radial-gradient(circle, color-mix(in srgb, var(--kh-mint, #b9dfcb) 22%, transparent), transparent 70%);
+	pointer-events: none;
+}
+.qt-auth-side .qt-brand { padding: 0; }
+.qt-auth-side .qt-brand strong { font-size: 17px; }
+.qt-logo-img { width: 44px; height: 44px; object-fit: contain; border-radius: 11px; background: #fff; padding: 4px; }
+.qt-auth-pitch h2 { color: #fff; font-size: clamp(24px, 2.6vw, 34px); line-height: 1.2; font-weight: 800; max-width: 14ch; margin-bottom: 22px; }
+.qt-auth-pitch ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 15.5px; }
+.qt-auth-pitch li { display: flex; gap: 10px; align-items: flex-start; }
+.qt-auth-pitch .qt-ico { color: var(--kh-mint, #b9dfcb); margin-top: 2px; }
+.qt-auth-foot { margin: 0; position: relative; z-index: 1; }
+.qt-auth-foot a { color: var(--qt-side-text); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.qt-auth-foot a:hover { color: #fff; }
+.qt-auth-main { display: grid; place-items: center; padding: 40px 24px; }
+.qt-auth-card { width: 100%; max-width: 420px; }
+.qt-auth-card h1 { font-size: 28px; font-weight: 800; }
+.qt-auth-card > .qt-muted { margin: 6px 0 24px; }
+.qt-auth-card .qt-flash { margin: 0 0 18px; max-width: none; }
+.qt-auth-card .qt-form { gap: 18px; }
+.qt-label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.qt-label-row label { font-weight: 600; font-size: 14px; }
+.qt-label-row a { font-size: 14px; font-weight: 600; }
+.qt-pass { position: relative; }
+.qt-pass input { width: 100%; min-height: 48px; padding: 10px 48px 10px 14px; border: 1px solid #d4dcd8; border-radius: 10px; font: 15px var(--qt-font); color: var(--qt-text); background: #fff; }
+.qt-pass input:focus { outline: 0; border-color: var(--qt-primary); box-shadow: 0 0 0 3px var(--qt-primary-soft); }
+.qt-pass .qt-icon-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; }
+.qt-pass.is-shown .qt-icon-btn { color: var(--qt-primary); }
+.qt-auth-card .qt-field input[type="text"] { min-height: 48px; }
+.qt-btn-block { width: 100%; min-height: 50px; font-size: 16px; }
+.qt-auth-alt { margin: 22px 0 0; text-align: center; }
+.qt-auth-alt a { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14.5px; }
+
 /* ==========================================================================
    Màn hình nhỏ
    ========================================================================== */
@@ -520,6 +565,12 @@ a.qt-chip:hover { background: var(--qt-primary-soft); color: var(--qt-primary-da
 
 @media (max-width: 900px) {
 	:root { --qt-side-w: 0px; }
+	.qt-auth { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+	.qt-auth-side { padding: 18px 20px; gap: 0; }
+	.qt-auth-side::after { display: none; }
+	.qt-auth-pitch, .qt-auth-foot { display: none; }
+	.qt-auth-main { place-items: start center; padding: 28px 20px 40px; }
+	.qt-auth-card h1 { font-size: 24px; }
 	.qt-side { width: 280px; transform: translateX(-100%); transition: transform .22s ease; }
 	body.qt-menu-open .qt-side { transform: none; box-shadow: 0 0 40px rgba(0, 0, 0, .25); }
 	.qt-scrim { position: fixed; inset: 0; background: rgba(14, 30, 22, .4); z-index: 35; opacity: 0; pointer-events: none; transition: opacity .2s; }
