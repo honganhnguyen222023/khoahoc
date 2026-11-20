@@ -1,0 +1,7 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 683 1024' width='683' height='1024'>
+<defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#EEF3F0'/><stop offset='1' stop-color='#D9E6DE'/></linearGradient></defs>
+<rect width='683' height='1024' fill='url(#g)'/>
+<g fill='#C9D8CF'><circle cx='341' cy='380' r='120'/><path d='M120 1024c0-170 99-300 221-300s221 130 221 300z'/></g>
+<rect x='191' y='880' width='300' height='56' rx='28' fill='#fff' opacity='.9'/>
+<text x='341' y='916' text-anchor='middle' font-family='Be Vietnam Pro,Inter,Arial,sans-serif' font-size='22' font-weight='600' fill='#157A4F'>Ảnh người sáng lập</text>
+</svg>
