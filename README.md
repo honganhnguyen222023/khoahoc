@@ -17,6 +17,9 @@ Theme WordPress viết bằng Tailwind CSS cho học viện hoặc trung tâm d�
 | SEO: meta description, ảnh chia sẻ Facebook/Zalo, schema Khóa học, FAQ, Breadcrumb | Tự động. Tự nhường cho Yoast/Rank Math nếu bạn cài |
 | Google Analytics 4, Facebook Pixel | **Cài đặt website → SEO & đo lường** |
 | Bán khóa học qua WooCommerce (không bắt buộc) | Nhập **ID sản phẩm WooCommerce** trong khóa học |
+| **Trang quản trị riêng** cho người bán: đơn hàng, học viên, khóa học, giáo trình, liên hệ, cài đặt | **http://ten-mien/quan-tri/** (đăng nhập tại `/quan-tri/dang-nhap/`) |
+
+Ghi chú các thay đổi gần đây: [docs/GHI-CHU-THAY-DOI.md](docs/GHI-CHU-THAY-DOI.md).
 
 ### Tốc độ
 - Font Be Vietnam Pro và Inter lưu ngay trên hosting, chỉ tải bộ chữ Việt/Latin cần dùng, không gọi Google Fonts.
