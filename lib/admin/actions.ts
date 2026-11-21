@@ -6,7 +6,8 @@ import { digits, price } from '../html';
 import { bundleIds, durationLabel, grantCourse, renewCourse, revokeCourse, viewsReset, accessInfo } from '../lms';
 import { sendMail } from '../mail';
 import { addNote, setOrderStatus } from '../orders';
-import { hashPassword } from '../passwords';
+import { hashPassword, verifyPassword } from '../passwords';
+import { endOtherSessions } from '../auth';
 import { getSettings, opt, OPTION_GROUPS, saveSetting } from '../settings';
 import { curriculumClean, curriculumRead, curriculumWrite } from './pages-b';
 import { moneyValue, qtUrl } from './ui';
@@ -90,6 +91,20 @@ export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
     if (!u) return { ok: false, msg: 'Không gửi được email.' };
     await resetLink(u.id, u.email, u.name, 'Đặt lại mật khẩu');
     return { ok: true, msg: `Đã gửi email đặt lại mật khẩu tới ${u.email}.` };
+  },
+  async student_delete(f, me) {
+    const u = await db.user.findUnique({ where: { id: int(f, 'user_id') } });
+    if (!u) return { ok: false, msg: 'Không tìm thấy học viên.' };
+    if (u.role !== 'student' || u.id === me.id) return { ok: false, msg: 'Chỉ xóa được tài khoản học viên.' };
+    // Xóa tài khoản: phiên đăng nhập, khóa học đã mở, tiến độ… tự xóa theo; đơn hàng giữ lại (không gắn tài khoản).
+    await db.user.delete({ where: { id: u.id } });
+    return { ok: true, msg: `Đã xóa học viên ${u.name} (${u.email}).`, go: qtUrl('hoc-vien') };
+  },
+  async student_logout(f) {
+    const u = await db.user.findUnique({ where: { id: int(f, 'user_id') } });
+    if (!u) return { ok: false, msg: 'Không tìm thấy học viên.' };
+    const r = await db.session.deleteMany({ where: { userId: u.id, kind: 'site' } });
+    return { ok: true, msg: `Đã đăng xuất ${u.name} khỏi ${r.count} thiết bị.` };
   },
   async course_grant(f) {
     const uid = int(f, 'user_id');
@@ -191,6 +206,33 @@ export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
     if (!c) return { ok: false, msg: 'Không tìm thấy khóa học.' };
     await db.course.delete({ where: { id: c.id } });
     return { ok: true, msg: `Đã xóa khóa “${c.title}”.`, go: qtUrl('khoa-hoc') };
+  },
+
+  /* ---------------- Tài khoản của tôi (người đang đăng nhập quản trị) */
+  async me_save(f, me) {
+    const name = str(f, 'name').slice(0, 100);
+    const login = str(f, 'login');
+    const email = str(f, 'email').toLowerCase();
+    const p1 = String(f.get('pass1') ?? '');
+    const p2 = String(f.get('pass2') ?? '');
+    if (!(await verifyPassword(String(f.get('current') ?? ''), me.passwordHash)).ok) return { ok: false, msg: 'Mật khẩu hiện tại chưa đúng.' };
+    if (!name) return { ok: false, msg: 'Vui lòng nhập tên hiển thị.' };
+    if (!/^[A-Za-z0-9._-]{3,60}$/.test(login)) return { ok: false, msg: 'Tên đăng nhập cần 3–60 ký tự: chữ không dấu, số, dấu chấm, gạch dưới, gạch ngang.' };
+    if (!isEmail(email)) return { ok: false, msg: 'Email chưa đúng.' };
+    const dupLogin = await db.user.findUnique({ where: { login } });
+    if (dupLogin && dupLogin.id !== me.id) return { ok: false, msg: 'Tên đăng nhập này đã có người dùng.' };
+    const dupEmail = await db.user.findUnique({ where: { email } });
+    if (dupEmail && dupEmail.id !== me.id) return { ok: false, msg: 'Email này đang thuộc về tài khoản khác.' };
+    const data: Record<string, string> = { name, login, email, ...splitName(name) };
+    if (p1 || p2) {
+      if (p1.length < 6) return { ok: false, msg: 'Mật khẩu mới cần ít nhất 6 ký tự.' };
+      if (p1 !== p2) return { ok: false, msg: 'Hai mật khẩu mới không khớp.' };
+      data.passwordHash = await hashPassword(p1);
+    }
+    await db.user.update({ where: { id: me.id }, data });
+    // Đổi mật khẩu: đăng xuất các thiết bị khác, giữ lại phiên quản trị đang dùng.
+    if (data.passwordHash) await endOtherSessions(me.id, 'admin');
+    return { ok: true, msg: data.passwordHash ? 'Đã lưu. Mật khẩu mới có hiệu lực, các thiết bị khác đã bị đăng xuất.' : 'Đã lưu thông tin tài khoản.', go: qtUrl('tai-khoan') };
   },
 
   /* ---------------- Liên hệ */

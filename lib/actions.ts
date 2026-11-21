@@ -3,7 +3,7 @@
 // để public/js/app.js chạy lại, giống WordPress).
 import { headers } from 'next/headers';
 import { randomBytes } from 'node:crypto';
-import { authenticate, endSession, getCurrentUser, startSession } from './auth';
+import { authenticate, endOtherSessions, endSession, getCurrentUser, startSession } from './auth';
 import { cartCourses, cartIds, saveCart } from './cart';
 import { db } from './db';
 import { digits } from './html';
@@ -51,7 +51,9 @@ export async function loginAction(f: FormData) {
     redirect(qs('sai'));
   }
   fails.delete(key);
-  await startSession(user.id, !!f.get('rememberme'));
+  await startSession(user, !!f.get('rememberme'));
+  // Quản trị viên / nhân viên đăng nhập ở website: đăng nhập luôn trang quản trị.
+  if (user.role !== 'student') await startSession(user, !!f.get('rememberme'), 'admin');
   redirect(user.role === 'student' ? back : back === '/' ? '/quan-tri/' : back);
 }
 
@@ -61,7 +63,7 @@ export async function registerAction(f: FormData) {
   const phone = str(f, 'kh_phone');
   const email = str(f, 'email').toLowerCase();
   const pass = String(f.get('password') ?? '');
-  const err = (tb: string) => redirect(`/tai-khoan/?tb=${tb}&dk=1${back !== '/' ? '&redirect_to=' + encodeURIComponent(back) : ''}`);
+  const err = (tb: string) => redirect(`/tai-khoan/dang-ky/?tb=${tb}${back !== '/' ? '&redirect_to=' + encodeURIComponent(back) : ''}`);
   if (!name) err('thieu-ten');
   const d = digits(phone);
   if (d.length < 9 || d.length > 12) err('sai-sdt');
@@ -74,7 +76,7 @@ export async function registerAction(f: FormData) {
   let login = email.split('@')[0].replace(/[^a-z0-9._-]/gi, '') || 'hocvien';
   for (let i = 2; await db.user.findUnique({ where: { login } }); i++) login = login.replace(/\d*$/, '') + i;
   const user = await db.user.create({ data: { login, email, name, firstName, lastName: parts.join(' '), phone, passwordHash: await hashPassword(pass) } });
-  await startSession(user.id, true);
+  await startSession(user, true);
   redirect(back);
 }
 
@@ -138,6 +140,7 @@ export async function updateAccountAction(f: FormData) {
     data.passwordHash = await hashPassword(p1);
   }
   await db.user.update({ where: { id: user.id }, data });
+  if (data.passwordHash) await endOtherSessions(user.id, 'site');
   redirect('/tai-khoan/thong-tin/?tb=da-luu');
 }
 

@@ -25,7 +25,12 @@ if errorlevel 1 goto loi
 if not exist "node_modules\.bin\prisma.cmd" goto loi
 :dacothuvien
 
-if exist "prisma\khoahoc.db" goto dacodulieu
+if not exist "prisma\khoahoc.db" goto taodulieu
+REM Cap nhat cau truc co so du lieu (them cot moi neu co), giu nguyen du lieu.
+call npm run db:push
+if errorlevel 1 goto loi
+goto dacodulieu
+:taodulieu
 echo Dang tao co so du lieu va nhap du lieu mau...
 call npm run setup
 if errorlevel 1 goto loi

@@ -156,6 +156,14 @@
                     "min": 0,
                     "max": 50,
                     "help": "Mặc định 2: học viên đã mua xem mỗi video bài học tối đa 2 lần, hết lượt thì bài đó khóa. Tải lại trang trong 30 phút vẫn tính là 1 lần. Muốn cho học viên xem thêm: Tài khoản → sửa học viên → tick \"Đặt lại lượt xem\". Nhập 0 = không giới hạn."
+                },
+                "max_devices": {
+                    "label": "Số thiết bị đăng nhập cùng lúc (mỗi học viên)",
+                    "default": "2",
+                    "type": "number",
+                    "min": 0,
+                    "max": 20,
+                    "help": "Mặc định 2: một tài khoản học viên chỉ đăng nhập được trên tối đa 2 thiết bị. Khi đăng nhập trên thiết bị thứ 3, thiết bị đăng nhập lâu nhất sẽ tự bị đăng xuất. Nhập 0 = không giới hạn."
                 }
             }
         },

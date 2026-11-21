@@ -15,6 +15,7 @@ export const SECTIONS: Record<string, Section> = {
   'khoa-hoc': { label: 'Khóa học', icon: 'book-open' },
   'lien-he': { label: 'Liên hệ', icon: 'inbox' },
   'cai-dat': { label: 'Cài đặt', icon: 'settings', admin: true },
+  'tai-khoan': { label: 'Tài khoản của tôi', icon: 'user' },
 };
 
 /** Quyền vào mục: quản trị viên vào hết; nhân viên không vào Cài đặt. */
@@ -154,7 +155,7 @@ export async function adminShell(s: Settings, user: User, section: string, page:
 <div class="qt-main"><header class="qt-top"><button type="button" class="qt-burger" data-qt-menu aria-controls="qt-side" aria-label="Mở menu">${qi('menu', 22)}</button>
 <div class="qt-title">${page.back ? `<a class="qt-back" href="${esc(page.back)}">${qi('arrow-left', 16)} Quay lại</a>` : ''}<h1>${esc(page.title)}</h1></div>
 <div class="qt-top-actions">${page.actions || ''}</div>
-<div class="qt-user" title="${esc(user.email)}"><span class="qt-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--qt-primary-soft);color:var(--qt-primary);display:grid;place-items:center;font-weight:700">${initial}</span><span>${esc(user.name)}</span></div></header>
+<a class="qt-user" href="${qtUrl('tai-khoan')}" title="${esc(user.email)} – Đổi tên, mật khẩu"><span class="qt-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--qt-primary-soft);color:var(--qt-primary);display:grid;place-items:center;font-weight:700">${initial}</span><span>${esc(user.name)}</span></a></header>
 ${flash ? `<div class="qt-flash ${flash.ok ? 'is-ok' : 'is-err'}" role="status">${qi(flash.ok ? 'circle-check' : 'alert-circle')}<span>${esc(flash.msg)}</span><button type="button" data-qt-dismiss aria-label="Đóng">${qi('x', 16)}</button></div>` : ''}
 <main class="qt-content">${page.html}</main></div></div>`;
 }

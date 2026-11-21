@@ -14,7 +14,7 @@ if [ ! -x node_modules/.bin/prisma ] || [ ! -x node_modules/.bin/next ]; then
   rm -rf node_modules
   npm install || { read -r -p "Lỗi khi cài thư viện. Bấm Enter để đóng…"; exit 1; }
 fi
-[ -f prisma/khoahoc.db ] || npm run setup
+if [ -f prisma/khoahoc.db ]; then npm run db:push >/dev/null || { read -r -p "Lỗi cập nhật cơ sở dữ liệu. Bấm Enter để đóng…"; exit 1; }; else npm run setup; fi
 echo ""
 echo "Website: http://localhost:3000   |   Quản trị: http://localhost:3000/quan-tri/"
 echo "Đóng cửa sổ này để tắt website."

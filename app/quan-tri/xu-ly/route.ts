@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { ACTIONS } from '@/lib/admin/actions';
 import { qtLogin, qtLostPassword } from '@/lib/admin/login';
 import { canSection } from '@/lib/admin/ui';
-import { getCurrentUser } from '@/lib/auth';
+import { getAdminUser } from '@/lib/auth';
 import { isStaff } from '@/lib/lms';
 
 // Thao tác → mục quản trị cần quyền.
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   if (act === 'login') return go(await qtLogin(f, req));
   if (act === 'lost') return go(await qtLostPassword(f));
 
-  const me = await getCurrentUser();
+  const me = await getAdminUser();
   if (!me || !isStaff(me)) return go('/quan-tri/dang-nhap/');
   const fn = ACTIONS[act];
   if (!fn || (NEED[act] && !canSection(me, NEED[act]))) return go('/quan-tri/?tb=' + encodeURIComponent('Bạn không có quyền làm thao tác này.') + '&ok=0');

@@ -35,9 +35,10 @@ export async function qtLogin(f: FormData, req: Request): Promise<string> {
     const left = TRIES - n - 1;
     return err('Email/tên đăng nhập hoặc mật khẩu chưa đúng.' + (left > 0 && left < 3 ? ` Còn ${left} lần thử.` : ''));
   }
+  if (!isStaff(user)) return err('Tài khoản này là tài khoản học viên, không vào được trang quản trị. Vui lòng đăng nhập bằng tài khoản quản trị.');
   fails.delete(ip);
-  await startSession(user.id, !!f.get('rememberme'));
-  return isStaff(user) ? to : '/'; // Học viên đăng nhập nhầm: về website.
+  await startSession(user, !!f.get('rememberme'), 'admin');
+  return to;
 }
 
 export async function qtLostPassword(f: FormData): Promise<string> {

@@ -75,21 +75,24 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
     );
   }
 
-  /* ---------------- Chưa đăng nhập: đăng nhập / đăng ký */
+  /* ---------------- Chưa đăng nhập: trang Đăng nhập (/tai-khoan/) và trang Đăng ký (/tai-khoan/dang-ky/) riêng */
+  if (sub === 'dang-ky' && user) redirect(back.startsWith('/') && !back.startsWith('//') ? back : '/tai-khoan/');
   if (!user) {
-    if (sub) redirect('/tai-khoan/?redirect_to=' + encodeURIComponent(`/tai-khoan/${p.join('/')}/`));
-    const note = back ? `<div class="kh-login-note">${icon('play', '', 18)}<p>Đăng nhập hoặc <strong>tạo tài khoản miễn phí</strong> để học thử bài đầu tiên.</p></div>` : '';
+    const isReg = sub === 'dang-ky';
+    if (sub && !isReg) redirect('/tai-khoan/?redirect_to=' + encodeURIComponent(`/tai-khoan/${p.join('/')}/`));
+    const keep = back ? '?redirect_to=' + encodeURIComponent(back) : '';
+    const title = isReg ? 'Đăng ký tài khoản' : 'Đăng nhập';
+    const note = back && !isReg ? `<div class="kh-login-note">${icon('play', '', 18)}<p>Đăng nhập để vào học. Chưa có tài khoản? <a href="/tai-khoan/dang-ky/${esc(keep)}"><strong>Đăng ký miễn phí</strong></a></p></div>` : '';
     return (
       <div className="woocommerce-account woocommerce-page">
         <WooCss />
-        <Html html={`<header class="kh-page-head"><div class="kh-container"><nav class="kh-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Trang chủ</a></li><li aria-current="page">Tài khoản</li></ol></nav><h1 class="kh-h1 kh-h1-sm">Tài khoản</h1></div></header>`} />
+        <Html html={`<header class="kh-page-head"><div class="kh-container"><nav class="kh-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Trang chủ</a></li><li aria-current="page">${esc(title)}</li></ol></nav><h1 class="kh-h1 kh-h1-sm">${esc(title)}</h1></div></header>`} />
         <article className="kh-container kh-page">
           <div className="kh-prose kh-entry">
-            <div className="woocommerce">
+            <div className="woocommerce kh-auth-single" style={{ maxWidth: 480, margin: '0 auto' }}>
               <Html html={notice(tb) + note} />
-              <div className="u-columns col2-set" id="customer_login">
-                <div className="u-column1 col-1">
-                  <h2>Đăng nhập</h2>
+              {!isReg ? (
+                <div id="customer_login">
                   <form className="woocommerce-form woocommerce-form-login login" method="post" action="/api/form/dang-nhap/">
                     <input type="hidden" name="redirect_to" value={back} />
                     <p className="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
@@ -110,9 +113,12 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
                       <a href="/tai-khoan/quen-mat-khau/">Quên mật khẩu?</a>
                     </p>
                   </form>
+                  <p className="kh-auth-switch">
+                    Chưa có tài khoản? <a href={`/tai-khoan/dang-ky/${keep}`}>Đăng ký</a>
+                  </p>
                 </div>
-                <div className="u-column2 col-2">
-                  <h2>Đăng ký</h2>
+              ) : (
+                <div id="customer_register">
                   <form className="woocommerce-form woocommerce-form-register register" method="post" action="/api/form/dang-ky/">
                     <input type="hidden" name="redirect_to" value={back} />
                     <p className="woocommerce-form-row form-row form-row-wide">
@@ -138,8 +144,11 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
                       <button type="submit" className="woocommerce-Button woocommerce-button button woocommerce-form-register__submit">Đăng ký</button>
                     </p>
                   </form>
+                  <p className="kh-auth-switch">
+                    Đã có tài khoản? <a href={`/tai-khoan/${keep}`}>Đăng nhập</a>
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </article>

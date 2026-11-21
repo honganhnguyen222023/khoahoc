@@ -41,14 +41,14 @@ export function siteHeader(s: Settings, user: User | null, cartCount: number): s
 <div class="kh-header-actions">
 <a class="kh-cart" href="/gio-hang/" aria-label="Giỏ hàng">${icon('shopping-cart', '', 20)}<span class="kh-cart-count">${cartCount}</span></a>
 <a class="kh-cart kh-account${user ? ' is-in' : ''}" href="${accUrl}" aria-label="${esc(accLabel)}" title="${esc(user ? user.name : accLabel)}">${icon('user', '', 20)}</a>
-${cta ? `<a class="kh-btn kh-btn-primary kh-btn-sm kh-header-cta" ${linkAttrs(opt(s, 'header_cta_url'))}>${esc(cta)}</a>` : ''}
+${user ? '' : `<a class="kh-btn kh-btn-outline kh-btn-sm kh-header-cta" href="/tai-khoan/dang-ky/">Đăng ký</a>`}${cta ? `<a class="kh-btn kh-btn-primary kh-btn-sm kh-header-cta" ${linkAttrs(opt(s, 'header_cta_url'))}>${esc(cta)}</a>` : ''}
 <button class="kh-burger" type="button" aria-expanded="false" aria-controls="kh-drawer" data-menu-toggle><span class="screen-reader-text">Mở menu</span>${icon('menu', 'kh-burger-open', 24)}${icon('x', 'kh-burger-close', 24)}</button>
 </div></div>
 <div class="kh-drawer" id="kh-drawer" hidden><nav aria-label="Menu di động">${menuHtml(menu, 'kh-drawer-menu')}</nav>
 <div class="kh-drawer-actions">${
     user
       ? `<a class="kh-btn kh-btn-outline" href="/tai-khoan/khoa-hoc-cua-toi/">Khóa học của tôi</a><a class="kh-btn kh-btn-outline" href="/tai-khoan/dang-xuat/">Đăng xuất</a>`
-      : `<a class="kh-btn kh-btn-outline" href="/tai-khoan/">Đăng nhập / Đăng ký</a>`
+      : `<a class="kh-btn kh-btn-outline" href="/tai-khoan/">Đăng nhập</a><a class="kh-btn kh-btn-outline" href="/tai-khoan/dang-ky/">Đăng ký</a>`
   }${cta ? `<a class="kh-btn kh-btn-primary" ${linkAttrs(opt(s, 'header_cta_url'))}>${esc(cta)}</a>` : ''}${zalo ? `<a class="kh-btn kh-btn-outline" href="${esc(zalo)}" target="_blank" rel="noopener">Nhắn Zalo tư vấn</a>` : ''}</div></div>
 </header>`;
 }

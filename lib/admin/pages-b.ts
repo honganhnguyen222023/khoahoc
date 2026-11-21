@@ -1,4 +1,5 @@
 // Quản trị: Khóa học, Liên hệ, Cài đặt (viết lại từ inc/quantri/courses.php, contacts.php, settings.php).
+import type { User } from '@prisma/client';
 import { db } from '../db';
 import { esc, price, vnDate } from '../html';
 import { type Block, courseLessons, courseUrl, durationLabel, parseBlocks } from '../lms';
@@ -117,7 +118,8 @@ export async function pageCourses(id: string): Promise<AdminPage> {
     const lessons = Object.keys(courseLessons(c)).length;
     const bundle = c.bundle ? c.bundle.split(',').filter(Boolean).length : 0;
     const thumb = c.thumbnail || c.cover;
-    html += `<a class="qt-course-card" href="${qtUrl('khoa-hoc', c.id)}"><div class="qt-course-thumb">${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy">` : qi('book-open', 32)}${c.status === 'publish' ? badge('Đang hiện', 'ok') : badge('Đang ẩn', 'mute')}</div><div class="qt-course-body"><h3>${esc(c.title)}</h3><p class="qt-course-price"><strong>${esc(c.price ? price(c.price) : 'Miễn phí')}</strong>${(c.regularPrice || 0) > (c.price || 0) ? ` <del>${esc(price(c.regularPrice))}</del>` : ''}</p><p class="qt-course-meta"><span>${qi('play', 14)}${esc(bundle ? `${bundle} khóa trong combo` : `${lessons} bài học`)}</span><span>${qi('users', 14)}${counts[c.id] || 0} học viên</span><span>${qi('clock', 14)}${esc(durationLabel(c, s))}</span></p></div></a>`;
+    const del = actionButton('course_trash', { course_id: c.id }, qi('trash-2', 15) + ' Xóa', 'qt-btn qt-btn-ghost qt-btn-sm is-danger', `Xóa khóa “${c.title}”? Học viên đã mua sẽ không vào học được nữa. Không khôi phục được.`);
+    html += `<div class="qt-course-item"><a class="qt-course-card" href="${qtUrl('khoa-hoc', c.id)}"><div class="qt-course-thumb">${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy">` : qi('book-open', 32)}${c.status === 'publish' ? badge('Đang hiện', 'ok') : badge('Đang ẩn', 'mute')}</div><div class="qt-course-body"><h3>${esc(c.title)}</h3><p class="qt-course-price"><strong>${esc(c.price ? price(c.price) : 'Miễn phí')}</strong>${(c.regularPrice || 0) > (c.price || 0) ? ` <del>${esc(price(c.regularPrice))}</del>` : ''}</p><p class="qt-course-meta"><span>${qi('play', 14)}${esc(bundle ? `${bundle} khóa trong combo` : `${lessons} bài học`)}</span><span>${qi('users', 14)}${counts[c.id] || 0} học viên</span><span>${qi('clock', 14)}${esc(durationLabel(c, s))}</span></p></div></a><div class="qt-course-tools"><a class="qt-btn qt-btn-ghost qt-btn-sm" href="${qtUrl('khoa-hoc', c.id)}">${qi('pencil', 15)} Sửa</a>${del}</div></div>`;
   }
   return { title: 'Khóa học', actions: add, html: html + '</div>' };
 }
@@ -252,4 +254,20 @@ export async function pageSettings(q: Q): Promise<AdminPage> {
 
   form += `<div class="qt-savebar"><span class="qt-muted" data-qt-dirty-note>Chưa có thay đổi</span><button class="qt-btn" type="submit">${qi('save', 18)} Lưu cài đặt</button></div></form>`;
   return { title: 'Cài đặt', html: `<div class="qt-narrow">${form}</div>` };
+}
+
+/* ============================================================ Tài khoản của tôi (quản trị) */
+
+export async function pageAccount(me: User): Promise<AdminPage> {
+  let info = `<form method="post" action="/quan-tri/xu-ly/" class="qt-form" autocomplete="off">${formFields('me_save')}`;
+  info += field('name', 'Tên hiển thị', me.name, { required: true });
+  info += field('login', 'Tên đăng nhập', me.login, { required: true, help: 'Dùng để đăng nhập (hoặc đăng nhập bằng email). Chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới, gạch ngang.', attrs: 'autocapitalize="off" spellcheck="false" pattern="[A-Za-z0-9._\\-]{3,60}"' });
+  info += field('email', 'Email', me.email, { type: 'email', required: true, help: 'Email nhận link khi quên mật khẩu.' });
+  info += '<hr class="qt-hr"><h3 class="qt-h3">Đổi mật khẩu</h3><p class="qt-help">Để trống 2 ô dưới nếu không đổi mật khẩu.</p>';
+  info += field('pass1', 'Mật khẩu mới', '', { type: 'password', attrs: 'autocomplete="new-password" minlength="6"' });
+  info += field('pass2', 'Nhập lại mật khẩu mới', '', { type: 'password', attrs: 'autocomplete="new-password" minlength="6"' });
+  info += '<hr class="qt-hr">';
+  info += field('current', 'Mật khẩu hiện tại (bắt buộc để lưu)', '', { type: 'password', required: true, attrs: 'autocomplete="current-password"' });
+  info += `<div class="qt-form-foot"><button class="qt-btn" type="submit">${qi('save', 18)} Lưu thay đổi</button></div></form>`;
+  return { title: 'Tài khoản của tôi', html: card('Tên đăng nhập & mật khẩu', info, '', 'is-narrow') };
 }

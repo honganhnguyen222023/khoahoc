@@ -1,5 +1,6 @@
 // Quản trị: Tổng quan, Đơn hàng, Học viên (viết lại từ inc/quantri/dashboard.php, orders.php, students.php).
 import type { Prisma, User } from '@prisma/client';
+import { maxDevices } from '../auth';
 import { db } from '../db';
 import { esc, price, vnDate } from '../html';
 import { accessList, bundleIds, courseLessons, durationLabel, progress, viewsLimit, viewsUsedCount } from '../lms';
@@ -165,9 +166,9 @@ export async function pageStudents(id: string, q: Q): Promise<AdminPage> {
     const list = await accessList(u.id);
     const chips = u.access.map((a) => { const info = list[a.courseId]; return `<span class="qt-chip${info?.active ? ' is-ok' : ' is-mute'}">${esc(a.course.title)}${info?.active ? '' : ' (hết hạn)'}</span>`; }).join('');
     const url = qtUrl('hoc-vien', u.id);
-    rows += `<tr data-href="${url}"><td data-label="Học viên"><div class="qt-person"><span class="qt-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--qt-primary-soft);color:var(--qt-primary);display:grid;place-items:center;font-weight:700;flex:none">${esc(u.name.charAt(0).toUpperCase())}</span><div><a href="${url}"><strong>${esc(u.name)}</strong></a><span class="qt-muted qt-block">${esc(u.email)}</span></div></div></td><td data-label="Điện thoại">${u.phone ? esc(u.phone) : '<span class="qt-muted">—</span>'}</td><td data-label="Khóa học">${chips ? `<div class="qt-chips">${chips}</div>` : '<span class="qt-muted">Chưa có khóa nào</span>'}</td><td data-label="Tham gia">${esc(vnDate(u.createdAt))}</td></tr>`;
+    rows += `<tr data-href="${url}"><td data-label="Học viên"><div class="qt-person"><span class="qt-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--qt-primary-soft);color:var(--qt-primary);display:grid;place-items:center;font-weight:700;flex:none">${esc(u.name.charAt(0).toUpperCase())}</span><div><a href="${url}"><strong>${esc(u.name)}</strong></a><span class="qt-muted qt-block">${esc(u.email)}</span></div></div></td><td data-label="Điện thoại">${u.phone ? esc(u.phone) : '<span class="qt-muted">—</span>'}</td><td data-label="Khóa học">${chips ? `<div class="qt-chips">${chips}</div>` : '<span class="qt-muted">Chưa có khóa nào</span>'}</td><td data-label="Tham gia">${esc(vnDate(u.createdAt))}</td><td class="qt-row-actions">${actionButton('student_delete', { user_id: u.id }, qi('trash-2', 15) + ' Xóa', 'qt-btn qt-btn-ghost qt-btn-sm is-danger', `Xóa học viên “${u.name}” (${u.email})? Toàn bộ khóa học đã mở, tiến độ học sẽ bị xóa. Đơn hàng vẫn được giữ lại. Không khôi phục được.`)}</td></tr>`;
   }
-  html += card('', `<table class="qt-table is-click"><thead><tr><th>Học viên</th><th>Điện thoại</th><th>Khóa học</th><th>Tham gia</th></tr></thead><tbody>${rows}</tbody></table>` + pager(page, Math.ceil(total / 20), qtUrl('hoc-vien', '', search ? { q: search } : {})), '', 'is-flush');
+  html += card('', `<table class="qt-table is-click"><thead><tr><th>Học viên</th><th>Điện thoại</th><th>Khóa học</th><th>Tham gia</th><th><span class="screen-reader-text">Thao tác</span></th></tr></thead><tbody>${rows}</tbody></table>` + pager(page, Math.ceil(total / 20), qtUrl('hoc-vien', '', search ? { q: search } : {})), '', 'is-flush');
   return { title: 'Học viên', actions: add, html };
 }
 
@@ -221,9 +222,16 @@ async function studentDetail(id: number): Promise<AdminPage> {
   edit += field('name', 'Họ và tên', u.name, { required: true }) + field('phone', 'Số điện thoại / Zalo', u.phone, { type: 'tel' }) + field('email', 'Email đăng nhập', u.email, { type: 'email', required: true });
   edit += `<div class="qt-form-foot"><button class="qt-btn qt-btn-sm" type="submit">${qi('save', 16)} Lưu</button></div></form><hr class="qt-hr">`;
   edit += actionButton('student_reset', { user_id: id }, qi('mail', 15) + ' Gửi email đặt lại mật khẩu', 'qt-btn qt-btn-ghost qt-btn-sm', `Gửi email đặt lại mật khẩu tới ${u.email}?`);
+  // Thiết bị đang đăng nhập.
+  const max = await maxDevices();
+  const devs = await db.session.findMany({ where: { userId: id, kind: 'site', expiresAt: { gt: new Date() } }, orderBy: { createdAt: 'desc' } });
+  let dev = `<p class="qt-help">${max ? `Mỗi học viên đăng nhập tối đa ${max} thiết bị cùng lúc (đổi trong Cài đặt → Học viên & bài học).` : 'Không giới hạn số thiết bị (đổi trong Cài đặt → Học viên & bài học).'}</p>`;
+  dev += devs.length ? `<ul class="qt-list">${devs.map((d) => `<li><div class="qt-list-main"><strong>${qi('monitor-smartphone', 16)} ${esc(d.device || 'Thiết bị')}</strong><span class="qt-muted">Đăng nhập ${esc(ago(d.createdAt))}</span></div></li>`).join('')}</ul>` : empty('Học viên chưa đăng nhập trên thiết bị nào.', 'monitor-smartphone');
+  if (devs.length) dev += `<div class="qt-form-foot">${actionButton('student_logout', { user_id: id }, qi('log-out', 15) + ' Đăng xuất tất cả thiết bị', 'qt-btn qt-btn-ghost qt-btn-sm', `Đăng xuất ${u.name} khỏi tất cả thiết bị?`)}</div>`;
+  const del = u.role === 'student' ? `<div class="qt-danger-zone">${actionButton('student_delete', { user_id: id }, qi('trash-2', 15) + ' Xóa học viên', 'qt-btn qt-btn-ghost qt-btn-sm is-danger', `Xóa học viên “${u.name}” (${u.email})? Toàn bộ khóa học đã mở, tiến độ học của học viên này sẽ bị xóa. Đơn hàng vẫn được giữ lại. Không khôi phục được.`)}</div>` : '';
   const orders = await db.order.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 10, include: { items: true } });
   const ol = orders.map((o) => { const [l, t] = st(o.status); return `<li><div class="qt-list-main"><a href="${qtUrl('don-hang', o.id)}"><strong>#${o.id}</strong></a><span>${esc(o.items.map((i) => i.name).join(', '))}</span><span class="qt-muted">${esc(vnDate(o.createdAt))}</span></div><div class="qt-list-side"><strong>${money(o.total)}</strong>${badge(l, t)}</div></li>`; }).join('');
-  const html = card('', head, '', 'is-profile') + `<div class="qt-grid is-wide-left"><div class="qt-stack">${card('Khóa học', coursesHtml)}${card('Mở thêm khóa học', grant)}</div><div class="qt-stack">${card('Thông tin học viên', edit)}${card('Đơn hàng', ol ? `<ul class="qt-list">${ol}</ul>` : empty('Chưa có đơn hàng.', 'receipt'))}</div></div>`;
+  const html = card('', head, '', 'is-profile') + `<div class="qt-grid is-wide-left"><div class="qt-stack">${card('Khóa học', coursesHtml)}${card('Mở thêm khóa học', grant)}</div><div class="qt-stack">${card('Thông tin học viên', edit)}${card('Thiết bị đang đăng nhập', dev)}${card('Đơn hàng', ol ? `<ul class="qt-list">${ol}</ul>` : empty('Chưa có đơn hàng.', 'receipt'))}</div></div>${del}`;
   void bundleIds;
   return { title: u.name, back: qtUrl('hoc-vien'), html };
 }

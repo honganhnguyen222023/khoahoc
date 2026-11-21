@@ -2,7 +2,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { getCurrentUser } from '@/lib/auth';
+import { getAdminUser } from '@/lib/auth';
 import { isStaff } from '@/lib/lms';
 
 const TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
@@ -10,7 +10,7 @@ const TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png',
 export async function POST(req: Request) {
   const origin = req.headers.get('origin');
   if (origin && new URL(origin).host !== new URL(req.url).host) return Response.json({ ok: false, msg: 'Sai nguồn gửi.' }, { status: 403 });
-  if (!isStaff(await getCurrentUser())) return Response.json({ ok: false, msg: 'Bạn cần đăng nhập quản trị.' }, { status: 403 });
+  if (!isStaff(await getAdminUser())) return Response.json({ ok: false, msg: 'Bạn cần đăng nhập quản trị.' }, { status: 403 });
   const file = (await req.formData()).get('file');
   if (!(file instanceof File)) return Response.json({ ok: false, msg: 'Chưa chọn ảnh.' }, { status: 400 });
   const ext = TYPES[file.type];
