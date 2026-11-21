@@ -4,6 +4,8 @@ Theme WordPress viết bằng Tailwind CSS cho học viện hoặc trung tâm d�
 
 ![Ảnh giao diện](screenshot.png)
 
+> **Bản Node.js (Next.js + Prisma)** của website này nằm trong thư mục [`node/`](node/): chạy độc lập, không cần WordPress. Xem [`node/README.md`](node/README.md) và [`node/HUONG-DAN-CHAY-MAY-KHAC.txt`](node/HUONG-DAN-CHAY-MAY-KHAC.txt).
+
 ## Có gì trong theme
 
 | Tính năng | Bạn sửa ở đâu |

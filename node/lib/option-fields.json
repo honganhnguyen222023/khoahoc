@@ -1,0 +1,293 @@
+{
+    "groups": {
+        "brand": {
+            "label": "Thương hiệu",
+            "fields": {
+                "brand_name": {
+                    "label": "Tên thương hiệu",
+                    "default": "KhoaHoc Academy",
+                    "help": "Hiện cạnh logo, chân trang và trong dữ liệu SEO."
+                },
+                "brand_tagline": {
+                    "label": "Khẩu hiệu ngắn",
+                    "default": "Tin học văn phòng & AI cho người đi làm"
+                },
+                "brand_initial": {
+                    "label": "Chữ trong logo (khi chưa có ảnh logo)",
+                    "default": "K",
+                    "help": "Muốn dùng ảnh logo: vào Giao diện → Tùy biến → Nhận dạng site → Logo."
+                },
+                "announce_text": {
+                    "label": "Thông báo đầu trang",
+                    "default": "",
+                    "help": "Để trống nếu không muốn hiện thanh thông báo."
+                },
+                "announce_url": {
+                    "label": "Link của thông báo",
+                    "default": "",
+                    "type": "url"
+                }
+            }
+        },
+        "contact": {
+            "label": "Liên hệ",
+            "fields": {
+                "phone": {
+                    "label": "Hotline",
+                    "default": "0900 000 000"
+                },
+                "zalo": {
+                    "label": "Số Zalo",
+                    "default": "0900000000",
+                    "help": "Dùng cho các nút \"Nhắn Zalo\". Để trống = dùng số Hotline."
+                },
+                "email": {
+                    "label": "Email",
+                    "default": "hello@example.com",
+                    "type": "email"
+                },
+                "address": {
+                    "label": "Địa chỉ",
+                    "default": ""
+                },
+                "notify_email": {
+                    "label": "Email nhận thông báo form liên hệ",
+                    "default": "",
+                    "type": "email",
+                    "help": "Để trống = gửi về email quản trị."
+                },
+                "float_contact": {
+                    "label": "Hiện nút Zalo/Gọi nổi ở góc màn hình",
+                    "default": "1",
+                    "type": "checkbox"
+                }
+            }
+        },
+        "social": {
+            "label": "Mạng xã hội",
+            "fields": {
+                "facebook": {
+                    "label": "Facebook",
+                    "default": "",
+                    "type": "url"
+                },
+                "tiktok": {
+                    "label": "TikTok",
+                    "default": "",
+                    "type": "url"
+                },
+                "youtube": {
+                    "label": "YouTube",
+                    "default": "",
+                    "type": "url"
+                }
+            }
+        },
+        "layout": {
+            "label": "Đầu trang & chân trang",
+            "fields": {
+                "header_cta_text": {
+                    "label": "Chữ nút trên đầu trang",
+                    "default": "Vào học"
+                },
+                "header_cta_url": {
+                    "label": "Link nút trên đầu trang",
+                    "default": "/tai-khoan/",
+                    "type": "url"
+                },
+                "footer_about": {
+                    "label": "Giới thiệu ngắn ở chân trang",
+                    "default": "Học tin học văn phòng và AI trên bài tập sát công việc thật. Học xong làm được ngay.",
+                    "type": "textarea"
+                },
+                "copyright": {
+                    "label": "Dòng bản quyền",
+                    "default": "© {year} KhoaHoc Academy. Mọi quyền được bảo lưu.",
+                    "help": "{year} tự đổi thành năm hiện tại."
+                },
+                "footer_note": {
+                    "label": "Dòng nhỏ cuối trang (bên phải)",
+                    "default": "Học online · Học theo lộ trình · Hỗ trợ qua nhóm Zalo"
+                }
+            }
+        },
+        "learning": {
+            "label": "Học viên & bài học",
+            "fields": {
+                "course_duration": {
+                    "label": "Thời hạn học mặc định",
+                    "default": "12",
+                    "type": "select",
+                    "options": {
+                        "life": "Trọn đời",
+                        "3": "3 tháng",
+                        "6": "6 tháng",
+                        "12": "12 tháng (1 năm)",
+                        "24": "24 tháng (2 năm)"
+                    },
+                    "help": "Tính từ ngày mở khóa. Hết hạn thì khóa học bị khóa lại; mua lại sẽ học từ đầu. Từng khóa có thể đặt riêng ở ô \"Thời hạn học\" khi sửa khóa học."
+                },
+                "sequential": {
+                    "label": "Học xong bài trước mới mở bài sau",
+                    "default": "1",
+                    "type": "checkbox",
+                    "help": "Học viên phải xem xong bài 1 mới vào được bài 2, cứ thế đến hết khóa. Quản trị viên luôn xem được mọi bài."
+                },
+                "watch_percent": {
+                    "label": "Xem bao nhiêu % thì tính là học xong (%)",
+                    "default": "80",
+                    "type": "number",
+                    "min": 10,
+                    "max": 100,
+                    "help": "Mặc định 80: xem được 80% bài trước là bài sau tự mở. Theme đếm số giây thật sự đã xem (tua qua không tính). Video Google Drive/Bunny và bài tài liệu dùng nút \"Đã học xong\"."
+                },
+                "trial_views": {
+                    "label": "Số lượt xem thử mỗi bài (tài khoản chưa mua)",
+                    "default": "2",
+                    "type": "number",
+                    "min": 0,
+                    "max": 50,
+                    "help": "Hết lượt thì bài học thử bị khóa. Tải lại trang trong 30 phút vẫn tính là 1 lượt. Nhập 0 = không giới hạn."
+                },
+                "lesson_views": {
+                    "label": "Số lần xem mỗi video sau khi mua",
+                    "default": "2",
+                    "type": "number",
+                    "min": 0,
+                    "max": 50,
+                    "help": "Mặc định 2: học viên đã mua xem mỗi video bài học tối đa 2 lần, hết lượt thì bài đó khóa. Tải lại trang trong 30 phút vẫn tính là 1 lần. Muốn cho học viên xem thêm: Tài khoản → sửa học viên → tick \"Đặt lại lượt xem\". Nhập 0 = không giới hạn."
+                },
+                "max_devices": {
+                    "label": "Số thiết bị đăng nhập cùng lúc (mỗi học viên)",
+                    "default": "2",
+                    "type": "number",
+                    "min": 0,
+                    "max": 20,
+                    "help": "Mặc định 2: một tài khoản học viên chỉ đăng nhập được trên tối đa 2 thiết bị. Khi đăng nhập trên thiết bị thứ 3, thiết bị đăng nhập lâu nhất sẽ tự bị đăng xuất. Nhập 0 = không giới hạn."
+                }
+            }
+        },
+        "colors": {
+            "label": "Màu sắc",
+            "fields": {
+                "color_primary": {
+                    "label": "Màu chính (nút, điểm nhấn)",
+                    "default": "#157A4F",
+                    "type": "color"
+                },
+                "color_ink": {
+                    "label": "Màu tiêu đề",
+                    "default": "#10261C",
+                    "type": "color"
+                },
+                "color_deep": {
+                    "label": "Màu khối nền đậm (kêu gọi hành động)",
+                    "default": "#0E3B2B",
+                    "type": "color"
+                }
+            }
+        },
+        "seo": {
+            "label": "SEO & đo lường",
+            "fields": {
+                "seo_description": {
+                    "label": "Mô tả trang chủ (meta description)",
+                    "default": "Khóa học Excel, Word và AI thực chiến cho người đi làm. Học theo lộ trình, có nhóm hỗ trợ.",
+                    "type": "textarea",
+                    "help": "Khoảng 140–160 ký tự. Nếu bạn dùng Yoast/Rank Math, theme tự nhường cho plugin."
+                },
+                "og_image": {
+                    "label": "Ảnh chia sẻ mặc định (Facebook, Zalo)",
+                    "default": "",
+                    "type": "image",
+                    "help": "Kích thước đẹp nhất 1200×630."
+                },
+                "ga4_id": {
+                    "label": "Google Analytics 4 (G-XXXX)",
+                    "default": ""
+                },
+                "head_code": {
+                    "label": "Mã chèn vào <head> (Pixel, xác minh…)",
+                    "default": "",
+                    "type": "code",
+                    "help": "Chỉ dán mã từ nguồn tin cậy."
+                }
+            }
+        }
+    },
+    "courseFields": {
+        "price": {
+            "label": "Học phí (đ)",
+            "type": "number",
+            "help": "Chỉ nhập số, ví dụ 490000."
+        },
+        "regular_price": {
+            "label": "Giá gốc / mua lẻ (đ)",
+            "type": "number",
+            "help": "Để trống nếu không giảm giá. Có giá gốc sẽ hiện gạch ngang và số tiền tiết kiệm."
+        },
+        "badge": {
+            "label": "Nhãn nhỏ",
+            "help": "Ví dụ: Khóa mới, Cơ bản → Nâng cao, Trọn bộ."
+        },
+        "icon": {
+            "label": "Biểu tượng",
+            "type": "icon"
+        },
+        "meta_line": {
+            "label": "Dòng thông tin",
+            "help": "Ví dụ: 12 chương · 121 bài · ~16,5 giờ"
+        },
+        "audience": {
+            "label": "Dành cho ai",
+            "help": "Một câu ngắn, ví dụ: Dành cho bạn muốn giỏi Excel trước."
+        },
+        "benefits": {
+            "label": "Lợi ích nổi bật",
+            "type": "textarea",
+            "help": "Mỗi dòng một ý. Bọc chữ trong **hai dấu sao** để in đậm."
+        },
+        "video": {
+            "label": "Video giới thiệu (YouTube)",
+            "type": "url",
+            "help": "Dán link YouTube. Video chỉ tải khi người xem bấm Play (giúp trang nhanh)."
+        },
+        "register_url": {
+            "label": "Link nút Đăng ký",
+            "type": "url",
+            "help": "Để trống: tự dùng sản phẩm WooCommerce bên dưới, nếu không có thì mở Zalo."
+        },
+        "wc_product": {
+            "label": "ID sản phẩm WooCommerce",
+            "type": "number",
+            "help": "Để trống: khi bật WooCommerce, theme tự tạo sản phẩm theo tên và học phí của khóa (tự cập nhật khi bạn đổi giá). Học viên mua xong được mở khóa tự động."
+        },
+        "duration": {
+            "label": "Thời hạn học",
+            "type": "select",
+            "options": {
+                "": "Theo cài đặt chung",
+                "life": "Trọn đời",
+                "3": "3 tháng",
+                "6": "6 tháng",
+                "12": "12 tháng (1 năm)",
+                "24": "24 tháng (2 năm)"
+            },
+            "help": "Tính từ ngày học viên được mở khóa. Hết hạn thì khóa lại; mua lại sẽ học từ đầu. \"Theo cài đặt chung\" = Cài đặt website → Học viên & bài học."
+        },
+        "bundle": {
+            "label": "Combo gồm các khóa",
+            "type": "courses",
+            "help": "Chỉ dùng cho khóa Combo: học viên mua combo được học tất cả các khóa đánh dấu ở đây."
+        },
+        "detail_url": {
+            "label": "Link \"Xem chi tiết\" riêng",
+            "type": "url",
+            "help": "Để trống = mở trang khóa học này. Dùng khi có landing page riêng."
+        },
+        "featured": {
+            "label": "Khóa nổi bật (thẻ lớn ở trang chủ)",
+            "type": "checkbox"
+        }
+    }
+}

@@ -18,13 +18,15 @@ case "$MODE" in
 		OUT="dist/khoahoc.zip"
 		rsync -a ./ "$STAGE/" \
 			--exclude node_modules --exclude .git --exclude dist --exclude docs \
-			--exclude scripts --exclude .DS_Store --exclude '*.log' --exclude .copy-dist-to
+			--exclude scripts --exclude .DS_Store --exclude '*.log' --exclude .copy-dist-to \
+			--exclude /node
 		;;
 	source)
 		OUT="dist/khoahoc-source.zip"
 		rsync -a ./ "$STAGE/" \
 			--exclude node_modules --exclude dist --exclude .DS_Store --exclude '*.log' \
-			--exclude docs/Tai-khoan-website.txt --exclude .copy-dist-to
+			--exclude docs/Tai-khoan-website.txt --exclude .copy-dist-to \
+			--exclude /node/.next --exclude /node/.env --exclude '/node/prisma/*.db*' --exclude /node/public/uploads/media
 		;;
 	*)
 		echo "Cách dùng: sh scripts/package.sh [theme|source]" >&2
