@@ -49,6 +49,6 @@ export default async function Admin({ params, searchParams }: P) {
   else if (section === 'tai-khoan') page = await pageAccount(user);
   else page = await pageSettings(q);
 
-  const flash = q.tb ? { msg: q.tb.slice(0, 300), ok: q.ok !== '0' } : null;
+  const flash = q.tb ? { msg: q.tb.slice(0, 600), ok: q.ok !== '0' } : null;
   return <Html html={await adminShell(s, user, section, page, flash)} />;
 }

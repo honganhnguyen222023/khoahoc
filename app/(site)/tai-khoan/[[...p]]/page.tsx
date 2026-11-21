@@ -173,6 +173,13 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
       <AccountShell title="Thông tin tài khoản" crumbs={[['Tài khoản', '/tai-khoan/'], ['Thông tin tài khoản']]} nav="edit-account" tb={tb}>
             <form className="woocommerce-EditAccountForm edit-account" method="post" action="/api/form/thong-tin/">
               <p className="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+                <label htmlFor="account_login">Tên đăng nhập</label>
+                <input type="text" className="woocommerce-Input input-text" id="account_login" value={user.login} readOnly disabled />
+                <span>
+                  <em>Dùng tên đăng nhập này (hoặc email) để đăng nhập. Tên đăng nhập không đổi được.</em>
+                </span>
+              </p>
+              <p className="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
                 <label htmlFor="account_display_name">Họ và tên<Req /></label>
                 <input type="text" className="woocommerce-Input input-text" name="account_display_name" id="account_display_name" defaultValue={user.name} required />
               </p>
@@ -209,6 +216,6 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
   if (sub) notFound();
 
   // Tổng quan.
-  const hello = `<p>Xin chào <strong>${esc(user.name)}</strong> (không phải <strong>${esc(user.name)}</strong>? <a href="/tai-khoan/dang-xuat/">Đăng xuất</a>)</p><p>Tại đây bạn có thể xem <a href="/tai-khoan/don-hang/">đơn hàng</a> và <a href="/tai-khoan/thong-tin/">đổi mật khẩu, thông tin tài khoản</a>.</p>`;
+  const hello = `<p>Xin chào <strong>${esc(user.name)}</strong> (không phải <strong>${esc(user.name)}</strong>? <a href="/tai-khoan/dang-xuat/">Đăng xuất</a>)</p><p class="kh-account-login">Tên đăng nhập: <strong>${esc(user.login)}</strong> · Email: <strong>${esc(user.email)}</strong></p><p>Tại đây bạn có thể xem <a href="/tai-khoan/don-hang/">đơn hàng</a> và <a href="/tai-khoan/thong-tin/">đổi mật khẩu, thông tin tài khoản</a>.</p>`;
   return <AccountShell title="Tài khoản" html={withNav('dashboard', hello + '<h2 class="kh-account-h">Khóa học của tôi</h2>' + (await myCoursesHtml(user)), tb)} />;
 }

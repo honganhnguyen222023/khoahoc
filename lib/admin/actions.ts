@@ -32,7 +32,16 @@ async function resetLink(userId: number, email: string, name: string, subjectPre
   await db.passwordReset.deleteMany({ where: { userId } });
   await db.passwordReset.create({ data: { id, userId, expiresAt: new Date(Date.now() + 24 * 3600 * 1000) } });
   const site = process.env.SITE_URL || 'http://localhost:3000';
-  await sendMail(email, `[${opt(s, 'brand_name')}] ${subjectPrefix}`, `Chào ${name},\n\nBấm vào link sau để đặt mật khẩu (hiệu lực 24 giờ):\n${site}/tai-khoan/dat-lai-mat-khau/?key=${id}\n\nĐăng nhập tại: ${site}/tai-khoan/`);
+  const link = `${site}/tai-khoan/dat-lai-mat-khau/?key=${id}`;
+  const sent = await sendMail(email, `[${opt(s, 'brand_name')}] ${subjectPrefix}`, `Chào ${name},\n\nBấm vào link sau để đặt mật khẩu (hiệu lực 24 giờ):\n${link}\n\nĐăng nhập tại: ${site}/tai-khoan/`);
+  return { sent, link };
+}
+
+/** Thông báo sau khi gửi (hoặc chưa gửi được) email đặt mật khẩu. */
+function mailNote(r: { sent: boolean; link: string }, email: string): string {
+  if (r.sent) return ` Đã gửi email tới ${email}.`;
+  const why = process.env.SMTP_HOST ? 'gửi email bị lỗi (xem Cài đặt → Email đã gửi)' : 'website chưa cài đặt gửi email (SMTP trong file .env)';
+  return ` CHƯA gửi được email vì ${why}. Gửi link này cho học viên qua Zalo để họ tự đặt mật khẩu (hiệu lực 24 giờ): ${r.link}`;
 }
 
 export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
@@ -50,6 +59,26 @@ export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
       'on-hold': `Đã mở lại đơn #${id} (chờ xác nhận).`,
     };
     return { ok: true, msg: msgs[status] };
+  },
+  async order_delete(f, me) {
+    const id = int(f, 'order_id');
+    const o = await db.order.findUnique({ where: { id }, include: { items: true } });
+    if (!o) return { ok: false, msg: 'Không tìm thấy đơn hàng.', go: qtUrl('don-hang') };
+    // Khóa lại các khóa học mở từ chính đơn này (khóa mở tay hoặc từ đơn khác giữ nguyên).
+    let closed = 0;
+    if (o.userId) {
+      for (const it of o.items) {
+        if (!it.courseId) continue;
+        const cur = await db.access.findUnique({ where: { userId_courseId: { userId: o.userId, courseId: it.courseId } } });
+        if (cur?.source === `order:${o.id}`) {
+          await revokeCourse(o.userId, it.courseId, `order:${o.id}`);
+          closed++;
+        }
+      }
+    }
+    await db.order.delete({ where: { id } });
+    void me;
+    return { ok: true, msg: `Đã xóa đơn #${id}${closed ? ` và khóa lại ${closed} khóa học mở từ đơn này` : ''}.`, go: qtUrl('don-hang') };
   },
   async order_note(f, me) {
     const id = int(f, 'order_id');
@@ -73,8 +102,8 @@ export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
     const u = await db.user.create({ data: { login, email, name, phone, ...splitName(name), passwordHash: await hashPassword(pass || randomBytes(12).toString('hex')) } });
     let opened = 0;
     for (const cid of all(f, 'courses')) if (await grantCourse(u.id, cid, 'admin')) opened++;
-    if (f.get('notify')) await resetLink(u.id, email, name, 'Tài khoản học viên của bạn');
-    return { ok: true, msg: `Đã tạo học viên ${name}${opened ? ` và mở ${opened} khóa học` : ''}${f.get('notify') ? '. Đã gửi email cho học viên.' : '.'}`, go: qtUrl('hoc-vien', u.id) };
+    const mail = f.get('notify') ? await resetLink(u.id, email, name, 'Tài khoản học viên của bạn') : null;
+    return { ok: !mail || mail.sent, msg: `Đã tạo học viên ${name}${opened ? ` và mở ${opened} khóa học` : ''}. Tên đăng nhập: “${login}”${pass ? '' : ' (chưa có mật khẩu – đặt mật khẩu ở khung “Đăng nhập của học viên”)'}.${mail ? mailNote(mail, email) : ''}`, go: qtUrl('hoc-vien', u.id) };
   },
   async student_update(f) {
     const id = int(f, 'user_id');
@@ -89,8 +118,8 @@ export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
   async student_reset(f) {
     const u = await db.user.findUnique({ where: { id: int(f, 'user_id') } });
     if (!u) return { ok: false, msg: 'Không gửi được email.' };
-    await resetLink(u.id, u.email, u.name, 'Đặt lại mật khẩu');
-    return { ok: true, msg: `Đã gửi email đặt lại mật khẩu tới ${u.email}.` };
+    const mail = await resetLink(u.id, u.email, u.name, 'Đặt lại mật khẩu');
+    return { ok: mail.sent, msg: mail.sent ? `Đã gửi email đặt lại mật khẩu tới ${u.email}.` : mailNote(mail, u.email).trim() };
   },
   async student_delete(f, me) {
     const u = await db.user.findUnique({ where: { id: int(f, 'user_id') } });
@@ -99,6 +128,17 @@ export const ACTIONS: Record<string, (f: F, me: User) => Promise<Result>> = {
     // Xóa tài khoản: phiên đăng nhập, khóa học đã mở, tiến độ… tự xóa theo; đơn hàng giữ lại (không gắn tài khoản).
     await db.user.delete({ where: { id: u.id } });
     return { ok: true, msg: `Đã xóa học viên ${u.name} (${u.email}).`, go: qtUrl('hoc-vien') };
+  },
+  async student_setpass(f) {
+    const u = await db.user.findUnique({ where: { id: int(f, 'user_id') } });
+    if (!u) return { ok: false, msg: 'Không tìm thấy học viên.' };
+    if (u.role !== 'student') return { ok: false, msg: 'Chỉ đặt mật khẩu cho tài khoản học viên ở đây.' };
+    const pass = String(f.get('password') ?? '');
+    if (pass.length < 6) return { ok: false, msg: 'Mật khẩu mới cần ít nhất 6 ký tự.' };
+    await db.user.update({ where: { id: u.id }, data: { passwordHash: await hashPassword(pass) } });
+    await db.session.deleteMany({ where: { userId: u.id } });
+    await db.passwordReset.deleteMany({ where: { userId: u.id } });
+    return { ok: true, msg: `Đã đặt mật khẩu mới cho ${u.name}. Báo cho học viên: tên đăng nhập “${u.login}” (hoặc email ${u.email}), mật khẩu “${pass}”.` };
   },
   async student_logout(f) {
     const u = await db.user.findUnique({ where: { id: int(f, 'user_id') } });
