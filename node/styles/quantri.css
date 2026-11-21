@@ -289,6 +289,14 @@ a.qt-chip:hover { background: var(--qt-primary-soft); color: var(--qt-primary-da
 
 /* ---- Bảng --------------------------------------------------------------- */
 .qt-table { width: 100%; border-collapse: collapse; }
+.qt-login-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.qt-login { font-size: 13.5px; padding: 3px 8px; border-radius: 6px; background: var(--qt-primary-soft); color: var(--qt-primary); font-weight: 600; }
+.qt-passbox { position: relative; }
+.qt-passbox > summary { list-style: none; cursor: pointer; }
+.qt-passbox > summary::-webkit-details-marker { display: none; }
+.qt-passbox[open] > summary { border-color: var(--qt-primary); color: var(--qt-primary); }
+.qt-passbox-form { display: flex; gap: 6px; margin-top: 8px; }
+.qt-passbox-form input { min-width: 0; flex: 1; width: 210px; padding: 7px 10px; font-size: 14px; border: 1px solid var(--qt-line); border-radius: 8px; }
 .qt-table th { text-align: left; font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--qt-muted); padding: 14px 18px; border-bottom: 1px solid var(--qt-line); background: #fafbfa; }
 .qt-table th:first-child { border-top-left-radius: var(--qt-radius); }
 .qt-table th:last-child { border-top-right-radius: var(--qt-radius); }

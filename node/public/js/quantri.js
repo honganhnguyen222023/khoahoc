@@ -48,7 +48,7 @@
 	/* ---- Bấm cả dòng trong bảng để mở --------------------------------- */
 	document.addEventListener( 'click', function ( e ) {
 		var row = e.target.closest( 'tr[data-href]' );
-		if ( ! row || e.target.closest( 'a, button, form, input, select, label' ) ) {
+		if ( ! row || e.target.closest( 'a, button, form, input, select, label, summary, details' ) ) {
 			return;
 		}
 		if ( e.metaKey || e.ctrlKey ) {
