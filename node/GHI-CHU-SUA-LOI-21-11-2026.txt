@@ -1,0 +1,79 @@
+GHI CHÚ SỬA LỖI / THÊM CHỨC NĂNG – 21/11/2026 (bản Node.js)
+==============================================================
+
+1. ĐANG ĐĂNG NHẬP HỌC VIÊN THÌ KHÔNG VÀO ĐƯỢC QUẢN TRỊ
+   Website và trang quản trị giờ dùng 2 phiên đăng nhập riêng (cookie kh_session / kh_admin).
+   - lib/auth.ts                     : viết lại – phiên "site" và "admin" riêng, getAdminUser()
+   - lib/admin/login.ts              : học viên đăng nhập quản trị → báo lỗi, không vào
+   - app/quan-tri/[[...p]]/page.tsx  : dùng phiên quản trị
+   - app/quan-tri/xu-ly/route.ts     : dùng phiên quản trị
+   - app/quan-tri/tai-anh/route.ts   : dùng phiên quản trị
+   - app/quan-tri/dang-xuat/route.ts : chỉ đăng xuất phần quản trị
+   - lib/actions.ts                  : admin đăng nhập ở website thì đăng nhập luôn quản trị
+
+2. ĐỔI TÊN VÀ MẬT KHẨU ADMIN
+   Quản trị → "Tài khoản của tôi" (hoặc bấm vào tên ở góc phải trên).
+   - lib/admin/ui.ts         : thêm mục menu "Tài khoản của tôi"
+   - lib/admin/pages-b.ts    : trang pageAccount (form tên, tên đăng nhập, email, mật khẩu)
+   - lib/admin/actions.ts    : thao tác me_save
+   - app/quan-tri/[[...p]]/page.tsx : mở trang /quan-tri/tai-khoan/
+   - styles/quantri.css      : kiểu cho nút tên người dùng
+
+3. XÓA HỌC VIÊN, XÓA KHÓA HỌC
+   - lib/admin/actions.ts    : thao tác student_delete (chỉ xóa được học viên)
+   - lib/admin/pages-a.ts    : nút Xóa ở danh sách học viên + trang chi tiết học viên
+   - lib/admin/pages-b.ts    : nút Sửa / Xóa ở mỗi thẻ trong danh sách khóa học
+   - styles/quantri.css      : kiểu cho hàng nút dưới thẻ khóa học
+
+4. NÚT "ĐĂNG KÝ" SÁT NÚT "VÀO HỌC" (đầu trang)
+   - lib/layout.ts           : thêm nút Đăng ký (đầu trang + menu điện thoại)
+
+5. BẤM "VÀO HỌC" CHỈ HIỆN FORM ĐĂNG NHẬP
+   - app/(site)/tai-khoan/[[...p]]/page.tsx : /tai-khoan/ chỉ còn form đăng nhập,
+                                             form đăng ký chuyển sang /tai-khoan/dang-ky/
+   - lib/actions.ts          : đăng ký lỗi thì quay về /tai-khoan/dang-ky/
+   - styles/app.css          : kiểu dòng "Chưa có tài khoản? Đăng ký"
+
+6. HỌC VIÊN ĐĂNG NHẬP TỐI ĐA 2 THIẾT BỊ
+   Thiết bị thứ 3 đăng nhập → thiết bị đăng nhập lâu nhất bị đăng xuất.
+   Đổi số thiết bị: Quản trị → Cài đặt → Học viên & bài học (0 = không giới hạn).
+   - prisma/schema.prisma    : bảng Session thêm cột kind, device
+   - lib/auth.ts             : giới hạn thiết bị trong startSession(), maxDevices()
+   - lib/option-fields.json  : thêm cài đặt max_devices
+   - lib/admin/pages-a.ts    : khung "Thiết bị đang đăng nhập" ở trang học viên
+   - lib/admin/actions.ts    : thao tác student_logout (đăng xuất mọi thiết bị)
+   - lib/actions.ts          : học viên đổi mật khẩu → đăng xuất thiết bị khác
+
+CHẠY WEBSITE
+   - Chay-website.bat / Chay-website.command : mỗi lần chạy tự cập nhật cơ sở dữ liệu
+     (npm run db:push), giữ nguyên dữ liệu cũ.
+
+==============================================================
+BỔ SUNG (21/11/2026, chiều)
+==============================================================
+
+7. BÁO ĐÚNG KHI CHƯA GỬI ĐƯỢC EMAIL (tạo học viên / gửi link đặt mật khẩu)
+   Chưa cài SMTP trong .env thì báo "CHƯA gửi được email" + hiện link đặt mật khẩu để gửi qua Zalo.
+   - lib/admin/actions.ts            : resetLink() trả về đã gửi hay chưa, hàm mailNote()
+   - app/quan-tri/[[...p]]/page.tsx  : thông báo dài tối đa 600 ký tự (đủ chỗ cho link)
+
+8. XÓA ĐƠN HÀNG
+   Nút Xóa ở danh sách đơn và ở trang chi tiết đơn. Khóa học mở từ chính đơn đó bị khóa lại.
+   - lib/admin/actions.ts    : thao tác order_delete
+   - lib/admin/pages-a.ts    : nút Xóa (danh sách + chi tiết đơn)
+
+9. QUẢN TRỊ XEM TÊN ĐĂNG NHẬP + ĐẶT MẬT KHẨU MỚI CHO HỌC VIÊN
+   Trang học viên → khung "Đăng nhập của học viên". Mật khẩu được mã hóa nên không xem được,
+   học viên quên thì quản trị đặt mật khẩu mới (học viên bị đăng xuất khỏi mọi thiết bị).
+   - lib/admin/actions.ts    : thao tác student_setpass; báo tên đăng nhập khi tạo học viên
+   - lib/admin/pages-a.ts    : hiện tên đăng nhập, form đặt mật khẩu mới
+
+10. HỌC VIÊN THẤY TÊN ĐĂNG NHẬP CỦA MÌNH
+   - app/(site)/tai-khoan/[[...p]]/page.tsx : trang Tài khoản + Thông tin tài khoản hiện tên đăng nhập
+
+11. DANH SÁCH HỌC VIÊN: CỘT "TÊN ĐĂNG NHẬP" + NÚT "ĐỔI MẬT KHẨU" KẾ BÊN
+   Bấm "Đổi mật khẩu" → hiện ô nhập mật khẩu mới ngay tại dòng đó → Lưu.
+   (Trang chi tiết học viên cũng có nút này cạnh tên đăng nhập.)
+   - lib/admin/pages-a.ts    : cột Tên đăng nhập, hàm passBox()
+   - styles/quantri.css      : kiểu ô tên đăng nhập, ô đổi mật khẩu
+   - public/js/quantri.js    : bấm nút trong dòng bảng không bị mở sang trang chi tiết

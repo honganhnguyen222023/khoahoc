@@ -1,0 +1,237 @@
+// Cơ sở dữ liệu KhoaHoc Academy (bản Node.js).
+// Trên máy: SQLite (file prisma/khoahoc.db). Lên server: đổi provider thành "postgresql"
+// và DATABASE_URL trong .env, rồi chạy: npm run db:push
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Cài đặt website (JSON): thương hiệu, liên hệ, màu sắc, học viên & bài học, chuyển khoản, menu…
+model Setting {
+  key   String @id
+  value String // JSON
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  login        String   @unique
+  email        String   @unique
+  name         String
+  firstName    String   @default("")
+  lastName     String   @default("")
+  phone        String   @default("")
+  passwordHash String
+  role         String   @default("student") // admin | staff | student
+  createdAt    DateTime @default(now())
+
+  sessions   Session[]
+  access     Access[]
+  progress   Progress[]
+  views      ViewRecord[]
+  lessonOpen LessonOpen[]
+  orders     Order[]
+  resets     PasswordReset[]
+}
+
+model Session {
+  id        String   @id // chuỗi ngẫu nhiên lưu trong cookie
+  userId    Int
+  kind      String   @default("site") // site = website (học viên) | admin = trang quản trị
+  device    String   @default("") // trình duyệt / thiết bị (User-Agent rút gọn)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String   @id // mã trong link email
+  userId    Int
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id          Int              @id @default(autoincrement())
+  name        String
+  slug        String           @unique
+  description String           @default("")
+  courses     CourseCategory[]
+}
+
+model Course {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  title        String
+  excerpt      String   @default("")
+  status       String   @default("draft") // publish | draft
+  sortOrder    Int      @default(0)
+  price        Int?
+  regularPrice Int?
+  badge        String   @default("")
+  icon         String   @default("")
+  metaLine     String   @default("")
+  audience     String   @default("")
+  benefits     String   @default("")
+  video        String   @default("")
+  registerUrl  String   @default("")
+  detailUrl    String   @default("")
+  duration     String   @default("") // "" = theo cài đặt chung | life | 3 | 6 | 12 | 24
+  bundle       String   @default("") // id các khóa trong combo, cách nhau dấu phẩy
+  featured     Boolean  @default(false)
+  cover        String   @default("")
+  thumbnail    String   @default("")
+  blocks       String   @default("[]") // nội dung + giáo trình (JSON khối, giống WordPress)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  categories CourseCategory[]
+  access     Access[]
+  orderItems OrderItem[]
+}
+
+model CourseCategory {
+  courseId   Int
+  categoryId Int
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, categoryId])
+}
+
+// Khóa học đã mở cho học viên (mua hoặc quản trị mở tay).
+model Access {
+  userId   Int
+  courseId Int
+  source   String   // "order:123" | "admin"
+  since    DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId])
+}
+
+// Bài đã học xong.
+model Progress {
+  userId   Int
+  courseId Int
+  lesson   Int
+  doneAt   DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId, lesson])
+}
+
+// Thời điểm bắt đầu mở bài (chống bấm "học xong" quá nhanh).
+model LessonOpen {
+  userId   Int
+  courseId Int
+  lesson   Int
+  openedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId, lesson])
+}
+
+// Lượt xem mỗi bài: kind = "views" (đã mua) | "trial" (học thử).
+model ViewRecord {
+  userId   Int
+  courseId Int
+  lesson   Int
+  kind     String
+  count    Int      @default(0)
+  last     DateTime @default(now())
+  grace    Boolean  @default(false) // tính khi mở trang (video không theo dõi được): tải lại trong 30 phút vẫn xem
+  tok      String   @default("")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId, lesson, kind])
+}
+
+model Order {
+  id            Int       @id @default(autoincrement())
+  userId        Int?
+  status        String    @default("pending") // pending | on-hold | processing | completed | cancelled | refunded | failed
+  total         Int
+  discount      Int       @default(0)
+  paymentMethod String    @default("bacs") // bacs | vnpay | momo | free
+  paymentTitle  String    @default("")
+  paymentRef    String    @default("") // mã giao dịch cổng thanh toán
+  firstName     String    @default("")
+  lastName      String    @default("")
+  email         String    @default("")
+  phone         String    @default("")
+  note          String    @default("")
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items         OrderItem[]
+  notes         OrderNote[]
+
+  @@index([status])
+}
+
+model OrderItem {
+  id       Int     @id @default(autoincrement())
+  orderId  Int
+  courseId Int?
+  name     String
+  total    Int
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+}
+
+model OrderNote {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  content   String
+  author    String   @default("system")
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String   @default("")
+  email     String   @default("")
+  topic     String   @default("")
+  message   String   @default("")
+  source    String   @default("")
+  status    String   @default("new") // new | done
+  createdAt DateTime @default(now())
+}
+
+// Trang (Giới thiệu, Liên hệ, Trang chủ…) và bài viết blog.
+model Page {
+  id        Int      @id @default(autoincrement())
+  type      String   @default("page") // page | post
+  slug      String
+  title     String
+  excerpt   String   @default("")
+  status    String   @default("publish")
+  isFront   Boolean  @default(false)
+  thumbnail String   @default("")
+  blocks    String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, slug])
+}
+
+// Email đã gửi (khi chưa cấu hình SMTP: chỉ lưu lại để xem trong quản trị).
+model EmailLog {
+  id        Int      @id @default(autoincrement())
+  to        String
+  subject   String
+  body      String
+  sent      Boolean  @default(false)
+  error     String   @default("")
+  createdAt DateTime @default(now())
+}
