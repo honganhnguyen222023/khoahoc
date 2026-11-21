@@ -1,5 +1,5 @@
 HƯỚNG DẪN CHẠY WEBSITE KHOAHOC (BẢN NODE.JS) TRÊN MÁY KHÁC
-Cập nhật: 20/11/2026
+Cập nhật: 21/11/2026
 
 Website chạy ngay trên máy tính của bạn để xem và thử, chưa cần hosting hay server.
 Sau khi chạy:
@@ -64,6 +64,11 @@ C. GẶP LỖI THƯỜNG GẶP
 
 • Cửa sổ báo "Chưa có Node.js" hoặc "'node' is not recognized"
   → Chưa cài Node.js, hoặc cài xong chưa khởi động lại máy. Làm lại Bước 1.
+
+• Báo "'prisma' is not recognized" hoặc "'next' is not recognized"
+  → Lần cài thư viện trước bị dở (mất mạng, tắt cửa sổ giữa chừng, diệt virus xóa file).
+  → Dùng file Chay-website.bat mới (cập nhật 21/11/2026): file này tự phát hiện và cài lại.
+  → Hoặc tự làm: xóa thư mục  node_modules  trong thư mục website rồi bấm đúp lại Chay-website.bat .
 
 • Báo lỗi khi "npm install" (lần đầu)
   → Kiểm tra Internet rồi bấm đúp lại Chay-website.bat .

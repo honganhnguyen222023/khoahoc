@@ -10,7 +10,10 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 [ -f .env ] || cp .env.example .env
-[ -d node_modules ] || npm install
+if [ ! -x node_modules/.bin/prisma ] || [ ! -x node_modules/.bin/next ]; then
+  rm -rf node_modules
+  npm install || { read -r -p "Lỗi khi cài thư viện. Bấm Enter để đóng…"; exit 1; }
+fi
 [ -f prisma/khoahoc.db ] || npm run setup
 echo ""
 echo "Website: http://localhost:3000   |   Quản trị: http://localhost:3000/quan-tri/"

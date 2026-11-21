@@ -11,10 +11,18 @@ if errorlevel 1 goto chuacocnode
 
 if not exist ".env" copy ".env.example" ".env" >nul
 
-if exist "node_modules" goto dacothuvien
-echo Dang cai thu vien lan dau, can Internet, vui long doi vai phut...
+REM Kiem tra thu vien da cai DU chua (khong chi kiem tra thu muc node_modules,
+REM vi lan cai truoc co the bi dung giua chung hoac bi diet virus xoa file).
+if not exist "node_modules\.bin\prisma.cmd" goto caithuvien
+if not exist "node_modules\.bin\next.cmd" goto caithuvien
+if not exist "node_modules\@prisma\client" goto caithuvien
+goto dacothuvien
+:caithuvien
+echo Dang cai thu vien, can Internet, vui long doi vai phut...
+if exist "node_modules" rmdir /s /q "node_modules"
 call npm install
 if errorlevel 1 goto loi
+if not exist "node_modules\.bin\prisma.cmd" goto loi
 :dacothuvien
 
 if exist "prisma\khoahoc.db" goto dacodulieu

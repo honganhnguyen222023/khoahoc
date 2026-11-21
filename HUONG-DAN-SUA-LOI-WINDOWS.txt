@@ -1,0 +1,114 @@
+﻿SỬA LỖI "'prisma' is not recognized" KHI CHẠY WEBSITE KHOAHOC TRÊN WINDOWS
+Cập nhật: 21/11/2026
+
+
+============================================================
+1. LỖI TRÔNG NHƯ THẾ NÀO
+============================================================
+
+Bấm đúp Chay-website.bat, cửa sổ màu đen hiện:
+
+    Dang tao co so du lieu va nhap du lieu mau...
+    > prisma db push --skip-generate && prisma generate
+    'prisma' is not recognized as an internal or external command,
+    operable program or batch file.
+    Co loi khi cai dat. Chup man hinh cua so nay gui cho nguoi ho tro.
+
+
+============================================================
+2. NGUYÊN NHÂN
+============================================================
+
+• Website cần một bộ thư viện (nằm trong thư mục "node_modules"). File zip KHÔNG
+  chứa thư viện này, nên lần chạy đầu tiên máy phải tải và cài về (lệnh npm install).
+
+• Ở lần chạy đầu trên máy bạn, việc cài thư viện đã bị DỪNG GIỮA CHỪNG, thường vì:
+    - mất Internet hoặc mạng chập chờn;
+    - đóng cửa sổ màu đen khi máy đang cài;
+    - Windows Defender (hoặc phần mềm diệt virus khác) xóa nhầm file.
+
+• Thư mục "node_modules" vẫn được tạo nhưng THIẾU file. File Chay-website.bat bản cũ
+  chỉ kiểm tra "có thư mục node_modules chưa", thấy có rồi nên bỏ qua bước cài.
+  Đến bước tạo dữ liệu, máy không tìm thấy công cụ "prisma" nên báo lỗi.
+
+• Code website không hỏng. Chỉ cần cài lại thư viện cho đủ là chạy được.
+
+
+============================================================
+3. CÁCH SỬA – CHỌN 1 TRONG 2 CÁCH
+============================================================
+
+------------------------------------------------------------
+CÁCH A (khuyên dùng): dùng bản mới khoahoc-node-source-21-11.zip
+------------------------------------------------------------
+File Chay-website.bat trong bản mới tự phát hiện thư viện bị thiếu và cài lại.
+
+  1. Đóng mọi cửa sổ màu đen của website đang mở.
+  2. Xóa (hoặc đổi tên) thư mục website cũ, ví dụ  C:\khoahoc-node
+  3. Chép file  khoahoc-node-source-21-11.zip  sang máy.
+  4. Bấm chuột phải vào file zip → "Extract All…" → giải nén vào  C:\
+     (sẽ được thư mục  C:\khoahoc-node ).
+  5. Làm mục 4 bên dưới (cho Windows Defender bỏ qua thư mục này).
+  6. Kiểm tra máy có Internet, rồi bấm đúp  C:\khoahoc-node\Chay-website.bat
+  7. Đợi 2–5 phút. KHÔNG đóng cửa sổ màu đen khi máy đang cài.
+     Xong, trình duyệt tự mở  http://localhost:3000
+
+------------------------------------------------------------
+CÁCH B: sửa ngay trên thư mục đang có (không cần file zip mới)
+------------------------------------------------------------
+  1. Đóng cửa sổ màu đen đang báo lỗi.
+  2. Mở thư mục website (ví dụ  C:\khoahoc-node ).
+  3. Xóa thư mục  node_modules
+     (nếu Windows báo không xóa được: khởi động lại máy rồi xóa lại).
+  4. Nếu có file  prisma\khoahoc.db  thì xóa luôn file đó.
+  5. Làm mục 4 bên dưới (cho Windows Defender bỏ qua thư mục này).
+  6. Kiểm tra máy có Internet, rồi bấm đúp  Chay-website.bat
+  7. Đợi 2–5 phút. KHÔNG đóng cửa sổ màu đen khi máy đang cài.
+     Xong, trình duyệt tự mở  http://localhost:3000
+
+
+============================================================
+4. CHO WINDOWS DEFENDER BỎ QUA THƯ MỤC WEBSITE (làm 1 lần)
+============================================================
+
+  1. Bấm nút Start, gõ  Windows Security , mở ứng dụng này.
+  2. Chọn "Virus & threat protection".
+  3. Mục "Virus & threat protection settings" → bấm "Manage settings".
+  4. Kéo xuống "Exclusions" → "Add or remove exclusions".
+  5. "Add an exclusion" → "Folder" → chọn  C:\khoahoc-node
+
+Nếu máy dùng phần mềm diệt virus khác (Kaspersky, BKAV, Avast…), thêm thư mục này
+vào danh sách loại trừ (Exclusions / Whitelist) của phần mềm đó.
+
+
+============================================================
+5. KHI CHẠY THÀNH CÔNG
+============================================================
+
+  - Website:   http://localhost:3000
+  - Quản trị:  http://localhost:3000/quan-tri/     (tài khoản: admin / admin)
+  - Học viên:  hocvien / hocvien123
+
+  Tắt website: đóng cửa sổ màu đen.
+  Lần sau: chỉ cần bấm đúp Chay-website.bat, mất vài giây là chạy.
+
+
+============================================================
+6. NẾU VẪN CÒN LỖI
+============================================================
+
+• Gõ thử để kiểm tra Node.js: bấm Start, gõ  cmd , mở "Command Prompt", gõ
+      node -v
+  rồi Enter.
+    - Hiện  v22.x.x  (hoặc v20, v24): Node.js đã cài đúng.
+    - Báo "'node' is not recognized": chưa cài Node.js. Tải bản LTS ở
+      https://nodejs.org , cài xong KHỞI ĐỘNG LẠI MÁY rồi làm lại mục 3.
+
+• Không nên để website trong thư mục OneDrive, Desktop có tên dài, hoặc đường dẫn
+  có dấu tiếng Việt. Để ở  C:\khoahoc-node  là chắc nhất.
+
+• Báo "Port 3000 is in use": đang có một cửa sổ website khác chạy. Đóng cửa sổ đó
+  (hoặc khởi động lại máy) rồi chạy lại.
+
+• Vẫn lỗi: chụp TOÀN BỘ cửa sổ màu đen (kéo lên xem cả đoạn chữ đỏ/vàng lúc
+  npm install) rồi gửi cho người hỗ trợ.
